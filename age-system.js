@@ -402,7 +402,7 @@ Hooks.once("ready", async function() {
     //     const warning = `Your AGE System data is from too old a Foundry version and cannot be reliably migrated to the latest version. The process will be attempted, but errors may occur.`;
     //     ui.notifications.error(warning, {permanent: true});
     // }
-    migrations.migrateWorld();
+    //migrations.migrateWorld();
 });
 
 // If Compendia are updated, then compendiumList is gathered once again
