@@ -94,6 +94,8 @@
   "SETTINGS.compchurn": "Churn",
   "SETTINGS.serendipity": "Usar Serendipia",
   "SETTINGS.serendipityHint": "Usar la regla opcional de Modern AGE de Serendipia",
+  "SETTINGS.ExpanseDices": "The Expanse dices set",
+  "SETTINGS.ExpanseDicesHint": "Select preferred The Expanse dices set for chat and Dice So Nice (reload game to apply)",
   "SETTINGS.observerRoll": "Permitir tiradas Observador",
   "SETTINGS.observerRollHint": "Permite a los jugadores con permisos de Observador tirar los dados desde la Hoja y el Chat",
   "SETTINGS.weaponGroups": "Grupos de Armas",

@@ -120,6 +120,9 @@
 	"SETTINGS.serendipity": "Utiliser la Sérendipité",
     "SETTINGS.serendipityHint": "Utiliser la règle optionnelle de Modern AGE pour la Sérendipité",
 
+    "SETTINGS.ExpanseDices": "Set de dés The Expanse",
+    "SETTINGS.ExpanseDicesHint": "Sélection du set de dés The Expanse pour l'affichage dans le chat et avec Dice So Nice (se reconnecter pour appliquer la modification)",
+    
     "SETTINGS.observerRoll": "Permet à un Observateur de faire des jets",
     "SETTINGS.observerRollHint": "Permet aux joueurs avec le rôle d'Observateur de faire des jets depuis les fiches ou du fil de discussion",
 

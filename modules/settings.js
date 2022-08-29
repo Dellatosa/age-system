@@ -427,6 +427,28 @@ export const registerSystemSettings = async function() {
     onChange: async () => {if (await game.settings.get("age-system", "serendipity")) game.ageSystem.ageTracker.refresh()}
   });
 
+    /**
+   * Select Dice so Nice and chat dice set
+   */
+     game.settings.register("age-system", "ExpanseDices", {
+      name: "SETTINGS.ExpanseDices",
+      hint: "SETTINGS.ExpanseDicesHint",
+      scope: "client",
+      config: true,
+      default: "TerreAE",
+      type: String,
+      choices:{
+        "TerreAE": "Terre blanc - bleu",
+        "TerreEA": "Terre bleu - blanc",
+        "MarsRN": "Mars rouge - noir",
+        "MarsNR": "Mars noir - rouge",
+        "CeintureBN": "Ceinture blanc - noir",
+        "CeintureNB": "Ceinture noir - blanc",
+        "ProtogenCN": "Protogène cyan - noir",
+        "ProtogenNC": "Protogène noir - cyan"
+      }
+    });
+
   /**
    * Let Observers roll (chat and sheet)
    */
