@@ -16,7 +16,7 @@
                 <div class="flexcol">
                     <label>{{localize "age-system.talentDegree"}}</label>
                     {{#if inChat}}
-                    <div class="data-input">{{data.data.shortDesc}}</div>
+                    <div class="data-input">{{config.degree}}</div>
                     {{else}}
                     <input type="text" name="data.shortDesc" value="{{data.data.shortDesc}}" placeholder="{{localize "age-system.talentDegree"}}" />
                     {{/if}}

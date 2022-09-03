@@ -514,7 +514,14 @@ export class ageSystemItem extends Item {
 
     async showItem(forceSelfRoll = false) {
         // return ui.notifications.warn("Show item cards on chat is currently unavailable. Await until next version"); // Remove when chat cards are working again
-        const rollMode = game.settings.get("core", "rollMode");       
+        const rollMode = game.settings.get("core", "rollMode");     
+        
+        let degree;
+        if(this.type == "talent") {
+            degree = ageSystem.talentDegrees[this.data.data.degree];
+        }
+        console.log(this, ageSystem.talentDegrees) ;
+        
         const cardData = {
             inChat: true,
             name: this.data.name,
@@ -525,7 +532,8 @@ export class ageSystemItem extends Item {
             ownerUuid: this.actor.uuid,
             config: {
                 colorScheme: ageSystem.colorScheme,
-                wealthMode: game.settings.get("age-system", "wealthType")
+                wealthMode: game.settings.get("age-system", "wealthType"),
+                degree : degree
             },
             cssClass: `colorset-${ageSystem.colorScheme} item-to-chat`
         };
