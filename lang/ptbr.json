@@ -14,6 +14,17 @@
     "ITEM.TypeMembership": "Filiação",
     "ITEM.TypeShipfeatures": "Atributo de Espaçonave",
 
+    "ITEM.stunts": "Façanha",
+    "ITEM.equipment": "Equipamento",
+    "ITEM.power": "Arcana & Poder",
+    "ITEM.talent": "Talento",
+    "ITEM.focus": "Foco",
+    "ITEM.weapon": "Arma",
+    "ITEM.relationship": "Vínculo",
+    "ITEM.honorifics": "Honraria",
+    "ITEM.membership": "Filiação",
+    "ITEM.shipfeatures": "Atributo de Espaçonave",
+
     "SETTINGS.useTargeted": "Usar a função \"Alvo\" para aplicar dano ou cura",
     "SETTINGS.useTargetedHint": "Ao invés de aplicar dano ou cura nos em tokens Controlados, aplica nos tokens marcados como Alvo",
 
