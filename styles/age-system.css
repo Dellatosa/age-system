@@ -2129,6 +2129,13 @@
   display: flex;
   align-items: center;
 }
+#chat-log .chat-message .message-content .age-system.base-age-roll .trait-test.dice-show img {
+  flex-grow: 0;
+  display: flex;
+  align-items: center;
+  border: none;
+  margin: 3px;
+}
 #chat-log .chat-message .message-content .age-system.base-age-roll .trait-test.dice-show a {
   max-width: min-content;
 }

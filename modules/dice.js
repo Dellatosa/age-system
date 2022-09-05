@@ -93,7 +93,11 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
     rollData.abilityName = "...";
     
     // Basic formula created spliting Stunt Die from the others
-    let rollFormula = "2d6 + 1d6";
+    
+    // MODIF DELLATOSA //
+    //let rollFormula = "2d6 + 1d6";
+    let rollFormula = "2dn + 1ds";
+    // END MODIF DELLATOSA //
 
     // Check if it is a Resource/Income roll
     let resName;
@@ -358,8 +362,12 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
 
     // Generate Stunt Points if doubles are rolled and total rolled is higher than TN or there is no TN set
     const generateSP = (rollTN && isSuccess) || !rollTN;
-    const rollSummary = ageRollChecker(ageRoll, generateSP, isStuntAttack, extraSP, stackSP)
-    let chatTemplate = "/systems/age-system/templates/rolls/base-age-roll.hbs";
+    // MODIF DELLATOSA //
+    //const rollSummary = ageRollChecker(ageRoll, generateSP, isStuntAttack, extraSP, stackSP)
+    //let chatTemplate = "/systems/age-system/templates/rolls/base-age-roll.hbs";
+    const rollSummary = ageRollCheckerExpanse(ageRoll, generateSP, isStuntAttack, extraSP, stackSP)
+    let chatTemplate = "/systems/age-system/templates/rolls/base-age-roll-expanse.hbs";
+    // END MODIF DELLATOSA //
     const injuryMarks = (rollType === ROLL_TYPE.TOUGHNESS) || (rollType === ROLL_TYPE.TOUGHNESS_AUTO) ? actorData.injury.marks : null;
 
     rollData = {
@@ -399,6 +407,8 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
         }
     };
 
+
+    /* // MODIF DELLATOSA //
     // Configuration of Stunt Die if using Dice so Nice
     if (game.modules.get("dice-so-nice") && game.modules.get("dice-so-nice").active) {
         const stuntDieColorset = game.settings.get("age-system", "stuntSoNice");
@@ -409,6 +419,7 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
             }
         }
     };
+    // END MODIF DELLATOSA // */
 
     if (!chatData.sound) chatData.sound = CONFIG.sounds.dice;
     if (rollMode === "blindroll") chatData = await ChatMessage.applyRollMode(chatData, rollMode);
@@ -572,6 +583,92 @@ export function ageRollChecker(ageRoll, generateSP, isStuntAttack, extraSP = 0, 
 
     return rollSummary
 };
+
+// MODIF DELLATOSA //
+export function ageRollCheckerExpanse(ageRoll, generateSP, isStuntAttack, extraSP = 0, stackSP = true) {
+    const die1 = ageRoll.dice[0].results[0].result;
+    const die2 = ageRoll.dice[0].results[1].result;
+    const die3 = ageRoll.dice[1].results[0].result;
+    const diffFaces = new Set([die1, die2, die3]).size;
+    const hasDoubles = diffFaces < 3;
+    const rollSummary = {
+        dice: {
+            d1: { val: die1, img: getDiceImg(die1, false)},
+            d2: { val: die2, img: getDiceImg(die2, false)},
+            d3: { val: die3, img: getDiceImg(die3, true)}
+        },
+        stunt: (hasDoubles || isStuntAttack) && generateSP,
+        stuntDie: die3
+        // stuntPoints: (isStuntAttack ? ageSystem.stuntAttackPoints : 0) + (hasDoubles ? die3 : 0) + (isStuntAttack || hasDoubles ? extraSP : 0)
+    };
+
+    // Define total of Stunt Points Generated
+    let stuntPts = 0;
+    if (rollSummary.stunt) {
+        stuntPts = isStuntAttack ? ageSystem.stuntAttackPoints : 0;
+        if (hasDoubles) stuntPts = stackSP ? stuntPts + die3 : Math.max(stuntPts, die3);
+        if (stuntPts) stuntPts += extraSP
+    }
+    rollSummary.stuntPoints = stuntPts;
+
+    return rollSummary
+};
+
+function getDiceImg(val, peripetie) {
+    let path = "systems/age-system/resources/imgs/expanse-dice/chat/";
+    let diceType;
+    let diceBase;
+    let dicePeripeties;
+
+    let expanseDiceType = game.settings.get("age-system", "ExpanseDices");
+    switch(expanseDiceType) {
+        case "TerreAE":
+            diceType = "earth";
+            diceBase = "light";
+            dicePeripeties = "dark";
+            break;
+        case "TerreEA":
+            diceType = "earth";
+            diceBase = "dark";
+            dicePeripeties = "light";
+            break;
+        case "MarsRN":
+            diceType = "mars";
+            diceBase = "light";
+            dicePeripeties = "dark";
+            break;
+        case "MarsNR":
+            diceType = "mars";
+            diceBase = "dark";
+            dicePeripeties = "light";
+            break;
+        case "CeintureBN":
+            diceType = "belt";
+            diceBase = "light";
+            dicePeripeties = "dark";
+            break;
+        case "CeintureNB":
+            diceType = "belt";
+            diceBase = "dark";
+            dicePeripeties = "light";
+            break;
+        case "ProtogenCN":
+            diceType = "protogen";
+            diceBase = "light";
+            dicePeripeties = "dark";
+            break;
+        case "ProtogenNC":
+            diceType = "protogen";
+            diceBase = "dark";
+            dicePeripeties = "light";
+            break;
+    }
+
+    //let img = peripetie ? dicePeripeties : diceBase;
+    let img = peripetie ? `${diceType}-${val}-${dicePeripeties}.png` : `${diceType}-${val}-${diceBase}.png`;
+    return `${path}${diceType}/${img}`;
+};
+// END MODIF DELLATOSA //
 
 export function damageToString(damageMod) {
     return damageMod > 0 ? `+${damageMod}` : `${damageMod}`;

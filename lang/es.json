@@ -105,6 +105,8 @@
   "SETTINGS.healthSysmage": "Modern AGE",
   "SETTINGS.healthSysmageInjury": "Modern AGE (alternate: Heridas)",
   "SETTINGS.healthSysmageVitality": "Modern AGE (alternate: Heridas & Vitalidad)",
+  "SETTINGS.ExpanseDices": "The Expanse dices set",
+  "SETTINGS.ExpanseDicesHint": "Select preferred The Expanse dices set for chat and Dice So Nice (reload game to apply)",
   "age-system": {
     "SHEETS": {
       "charStandard": "Personaje AGE",
