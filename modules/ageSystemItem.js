@@ -316,7 +316,7 @@ export class ageSystemItem extends Item {
      * @param {Object} object.formula Modifier value to be used
      * @returns Promise to update Item with new Modifier slot
      */
-    _newModifier({type = "", formula = "0", flavor = ""}) {
+    _newModifier({type = "", formula = "0", flavor = ""}={}) {
         const itemData = this.system
         const modifiers = foundry.utils.deepClone(itemData.modifiers);
         const keys = [];
@@ -409,6 +409,7 @@ export class ageSystemItem extends Item {
         const actor = this.actor;
         const actorData = actor?.system;
         const itemData = this.system;
+        if (itemData.type === "power" && !itemData.system.hasRoll) return false
         if (!actor) return false;
         let ablCode = (rollType === ROLL_TYPE.FATIGUE) ? itemData.ablFatigue : itemData.useAbl;
 

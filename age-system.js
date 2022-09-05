@@ -9,7 +9,7 @@ import ageSystemSheetSpaceship from "./modules/sheets/ageSystemSheetSpaceship.js
 import ageSystemSheetOrg from "./modules/sheets/ageSystemSheetOrg.js";
 import ageActiveEffectConfig from "./modules/sheets/ageActiveEffectConfig.js";
 import {ageSystemActor} from "./modules/ageSystemActor.js";
-import {ageToken} from "./modules/ageToken.js";
+import {ageTokenDocument} from "./modules/ageToken.js";
 import {ageSystemItem} from "./modules/ageSystemItem.js";
 import { createAgeMacro, removeDoubledMods } from "./modules/macros.js";
 import { rollOwnedItem } from "./modules/macros.js";
@@ -159,6 +159,7 @@ Hooks.once("init", async function() {
     // Define extra data for Age System (Actors, Items, ActiveEffectConfig)
     CONFIG.Actor.documentClass = ageSystemActor;
     CONFIG.Item.documentClass = ageSystemItem;
+    CONFIG.Token.documentClass = ageTokenDocument;
     CONFIG.ageSystem = ageSystem;
     // Saving this customization for a later implementation
     // CONFIG.Token.objectClass = ageToken;
@@ -387,21 +388,23 @@ Hooks.once("ready", async function() {
     if (game.modules.get("pdfoundry")?.active) ageSystem.pdfoundryOn = true;
 
     // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
-    Hooks.on("hotbarDrop", (bar, data, slot) => createAgeMacro(data, slot));
+    Hooks.on("hotbarDrop", (bar, data, slot) => {
+        if (data === {}) return false;
+        const item = fromUuidSync(data.uuid);
+        const itemType = item.type;
+        const rollTypes = ['weapon', 'focus'];
+        let hasRoll = rollTypes.includes(itemType)
+        if (!hasRoll && itemType === 'power') hasRoll = item.system.hasRoll;
+        if (hasRoll) createAgeMacro(item, slot);
+        return !hasRoll;
+    });
 
     // Determine whether a system migration is required and feasible
     if ( !game.user.isGM ) return;
     const currentVersion = game.settings.get("age-system", "systemMigrationVersion");
     const NEEDS_MIGRATION_VERSION = "1.0.0";
-    // const COMPATIBLE_MIGRATION_VERSION = "0.8.7";
     const needsMigration = !currentVersion || isNewerVersion(NEEDS_MIGRATION_VERSION, currentVersion);
     if ( !needsMigration ) return;
-
-    // Perform the migration
-    // if ( currentVersion && isNewerVersion(COMPATIBLE_MIGRATION_VERSION, currentVersion) ) {
-    //     const warning = `Your AGE System data is from too old a Foundry version and cannot be reliably migrated to the latest version. The process will be attempted, but errors may occur.`;
-    //     ui.notifications.error(warning, {permanent: true});
-    // }
     migrations.migrateWorld();
 });
 

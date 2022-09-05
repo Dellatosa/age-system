@@ -1,8 +1,28 @@
 # Release Notes
 
+## 1.0.4 [2022-09-05]
+- Fixed issue preventing Modifiers to be deleted from Items owned by Unlinked Actors.
+
+## 1.0.3 [2022-09-04]
+### Fixed
+- Deprecation warning when using Dice so Nice module.
+- Proportion of Item image on character sheet and chat cards.
+- Passengers list is update correctly for Spacheship and Vehicles.
+- Rolling maneuvers from Vehicles now return the expected data from Condutor.
+- Removed extra "-" from dropdown menu to select Ability on Focus item sheet.
+
+## 1.0.2 [2022-09-03]
+### Fixed
+- Focus Modifiers are now calculated correctly.
+
+## 1.0.1 [2022-09-03]
+### Fixed
+- Bug preventing creating new modifiers on Items.
+
 ## 1.0.0 [2022-08-31]
 ### Added
 - Experimental "AGE Importer", accessable by AGE Roller menu. Currently works only for Modern AGE stat blocks in English. A new Actor is created using the text pasted, including detected items. Fine tuning expected in the next versions.
+- Support to core function to create macros to display item sheet if the particular Item doesn't have a roll feature.
 
 ### Changed
 - Power item have now an option to indicate if it is "rollable" or not to cover for NPC characteristics without a dice requirement ("Special Features" or "Special Qualities" depending on the AGE setting used).
