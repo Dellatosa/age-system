@@ -1,4 +1,20 @@
 {
+  "TYPES.Actor.char": "Personnage",
+  "TYPES.Actor.vehicle": "Véhicule",
+  "TYPES.Actor.spaceship": "Vaisseau spatial",
+  "TYPES.Actor.organization": "Organisation",
+  "TYPES.Item.stunts": "Prouesse",
+  "TYPES.Item.equipment": "Équipement",
+  "TYPES.Item.power": "Pouvoir et Sort",
+  "TYPES.Item.talent": "Talent",
+  "TYPES.Item.focus": "Compétence",
+  "TYPES.Item.weapon": "Arme",
+  "TYPES.Item.relationship": "Relation",
+  "TYPES.Item.honorifics": "Titre",
+  "TYPES.Item.membership": "Affiliation",
+  "TYPES.Item.shipfeatures": "Fonctionnalité Vaisseau spatial",
+  "TYPES.Item.class": "Classe",
+
   "ACTOR.TypeChar": "Personnage",
   "ACTOR.TypeVehicle": "Véhicule",
   "ACTOR.TypeSpaceship": "Vaisseau spatial",
@@ -27,48 +43,65 @@
 
   "SETTINGS.useTargeted": "Utiliser le ciblage de token pour appliquer les dommages et les soins.",
   "SETTINGS.useTargetedHint": "Au lieu d'appliquer les dégâts ou les soins à partir des commandes et des boîtes de dialogue aux jetons contrôlés, appliquez-les aux jetons ciblés",
+
   "SETTINGS.quicksetting": "Paramétrage rapide de AGE",
   "SETTINGS.quicksettingHint": "Configure rapidement tous les  paramètres avancés en fonction du Paramètrage préselectionné",
+
   "SETTINGS.advSettings": "Options avancées de AGE",
   "SETTINGS.advSettingsHint": "Configure en détail tous les paramétrages possibles pour une partie sur-mesure.",
+
   "SETTINGS.consumePP": "Utilise les Points de Magie/Pouvoir/Mana sur le jet de dés",
   "SETTINGS.consumePPHint": "Si activé, les points nécessaires à l'utilisation d'un pouvoir seront déduits du total disponible du personnage. Un message apparaîtra s'il n'y a pas assez de points disponibles.",
+
   "SETTINGS.breatherSettings": "Configuration Répit",
   "SETTINGS.breatherSettingsHint": "Configure le nombre de points récupérés lors d'un répit",
+
   "SETTINGS.initiativeFocus": "Indiquez la compétence donnant un bonus d'Initiative",
   "SETTINGS.initiativeFocusHint": "Indiquez le nom de la compétence utilisée pour le bonus d'Initiative - ne mentionnez rien pour n'appliquer aucun bonus à l'Initiative",
+
   "SETTINGS.useConviction": "Utiliser Conviction",
   "SETTINGS.useConvictionHint": "Afficher la section Conviction pour le suivi",
+
   "SETTINGS.stuntAttack": "Prouesse martiale",
   "SETTINGS.stuntAttackHint": "Points de Prouesse accordés par l'action Prouesse martiale",
+
   "SETTINGS.useFatigue": "Utiliser la Fatigue",
   "SETTINGS.useFatigueHint": "Afficher la section Fatigue et le suivi de la fatigue liée à l'utilisation des Pouvoirs et Sorts",
+
   "SETTINGS.useConditions": "Utiliser les États",
   "SETTINGS.useConditionsHint": "Afficher une section États",
+
   "SETTINGS.usePowerPoints": "Utiliser les Points de magie",
   "SETTINGS.usePowerPointsHint": "Afficher la section Points de magie et le suivi des points de magie disponible pour les Pouvoirs et Sorts",
+
   "SETTINGS.useToughness": "Utiliser la Résistance",
   "SETTINGS.useToughnessHint": "Vérifiez si le jeu utilise la Résistance",
+
   "SETTINGS.useBallisticArmor": "Utiliser les armures Impact et Balistique",
   "SETTINGS.useBallisticArmorHint": "Sélectionner si l'armure est divisée entre impact et balistique",
+
   "SETTINGS.DegressChoice": "Talent Degrees",
   "SETTINGS.DegressChoiceHint": "Quantity and name of the talent degrees",
   "SETTINGS.TalentDegreesMAGE": "Novice, Expert, Master",
   "SETTINGS.TalentDegreesFAGE": "Novice, Journeyman, Master",
   "SETTINGS.TalentDegreesMAGEExtra": "Novice, Expert, Master, Grandmaster, Apex",
   "SETTINGS.TalentDegreesFAGEExtra": "Novice, Journeyman, Master, Grandmaster, Apex",
+
   "SETTINGS.wealthType": "Système de richesse utilisé",
   "SETTINGS.wealthTypeHint": "Revenus et Ressource sont basés sur des jets de dés, tandis que Monnaie est le système classique",
   "SETTINGS.wealthTypeResources": "Ressources",
   "SETTINGS.wealthTypeIncome": "Revenus",
   "SETTINGS.wealthTypeCurrency": "Monnaie",
   "SETTINGS.wealthTypeCoins": "PO / PA / PC",
+
   "SETTINGS.primaryAbl": "Sélectionner les attributs primaires",
   "SETTINGS.primaryAblHint": "Ajoute une case à cocher supplémentaire pour identifier les attributs primaires",
+
   "SETTINGS.abilitySelection": "Configuration des attributs",
   "SETTINGS.abilitySelectionHint": "Utiliser le système de base AGE ou le système Dragon Age",
   "SETTINGS.abilitySelectionMain": "Système de base AGE",
   "SETTINGS.abilitySelectionDage": "Dragon Age",
+
   "SETTINGS.colorScheme": "Sélectionner les couleurs pour les joueurs",
   "SETTINGS.colorSchemeHint": "Les couleurs affectent le thème du personnage et des objets",
   "SETTINGS.colorModernBlue": "Modern Blue",
@@ -81,45 +114,57 @@
   "SETTINGS.colorTheGrey": "The Grey",
   "SETTINGS.colorRedWarrior": "Red Warrior",
   "SETTINGS.colorNeverDead": "Never Dead",
+
   "SETTINGS.gameMode": "Mode de Jeu",
   "SETTINGS.gameModeHint": "Sélectionner le mode de jeu (comme indiqué dans Modern AGE) ou aucun si le réglage n’existe pas",
   "SETTINGS.gameModenone": "Aucun",
   "SETTINGS.gameModegritty": "Gritty",
   "SETTINGS.gameModepulp": "Pulp",
   "SETTINGS.gameModecinematic": "Cinématique",
+
   "SETTINGS.occupation": "Options concernant l'activité",
   "SETTINGS.occupationHint": "Sélectionner la meilleure option pour le monde utilisé",
   "SETTINGS.occprofession": "Profession",
   "SETTINGS.occclass": "Classe",
+
   "SETTINGS.ancestryOpt": "Options Historique",
   "SETTINGS.ancestryOptHint": "Sélectionner la meilleure option pour le monde utilisé",
   "SETTINGS.ancestryOptancestry": "Ancêtre",
   "SETTINGS.ancestryOptorigin": "Origine",
   "SETTINGS.ancestryOptspecies": "Espèce",
   "SETTINGS.ancestryOptrace": "Race",
+
   "SETTINGS.stuntSoNice": "Définition des couleurs pour le Dé de Prouesse (Dé Dragon) de Dice so Nice",
   "SETTINGS.stuntSoNiceHint": "Cette couleur ne sera applicable qu'au Dé de Prouesse (Dé Dragon)",
+
   "SETTINGS.masterFocusCompendium": "Sélectionner les options du Compendium avec les compétences",
   "SETTINGS.masterFocusCompendiumHint": "Les noms d'objets dans ce Compendium s'afficheront comme des suggestions de compétences sur les fiches",
+
   "SETTINGS.complicationRollTable": "Complication Effects",
   "SETTINGS.complicationRollTableDefault": "Roll 1d6",
   "SETTINGS.complicationRollTableHint": "This table will be rolled when determining if Peril/Complications/Churn is activated. Choose none to roll the standard 1d6.",
+
   "SETTINGS.healthMode": "Sélectionner le mode de suivi de la Santé",
   "SETTINGS.healthModeHint": "La plupart des jeux AGE utilisent la Santé tandis que The Expanse utilise la Fortune",
   "SETTINGS.healthModehealth": "Santé",
   "SETTINGS.healthModefortune": "Fortune",
+
   "SETTINGS.complication": "Utiliser les Complications ou la Turbulence",
   "SETTINGS.complicationHint": "Utiliser la Complication (Modern AGE), la Turbulence (The Expanse) ou aucun",
   "SETTINGS.complicationNone": "Aucun",
   "SETTINGS.compPeril": "Peril",
   "SETTINGS.compcomplication": "Complication",
   "SETTINGS.compchurn": "Turbulence",
+
   "SETTINGS.serendipity": "Utiliser la Sérendipité",
   "SETTINGS.serendipityHint": "Utiliser la règle optionnelle de Modern AGE pour la Sérendipité",
+
   "SETTINGS.observerRoll": "Permet à un Observateur de faire des jets",
   "SETTINGS.observerRollHint": "Permet aux joueurs avec le rôle d'Observateur de faire des jets depuis les fiches ou du fil de discussion",
+
   "SETTINGS.weaponGroups": "Groupes d'armes",
   "SETTINGS.weaponGroupsHint": "Indiquez les groupes d'armes en utilisant ; pour séparer les groupes. Laissez vide si les groupes d'armes ne sont pas utilisés (comme dans Modern Age)",
+
   "SETTINGS.healthSys": "Système de gestion de la Santé",
   "SETTINGS.healthSysHint": "\"Standard\" utilise Score d'Armure & Santé, \"The Expanse\" ajoute Résistance et Fortune, et \"Modern AGE\" utilise différents types de dommage, armure et vitalité en fonction du mode sélectionné",
   "SETTINGS.healthSysbasic": "Standard (FAGE, DAGE, BR)",
@@ -127,8 +172,16 @@
   "SETTINGS.healthSysmage": "Modern AGE",
   "SETTINGS.healthSysmageInjury": "Modern AGE (dommage alternatif : Blessure)",
   "SETTINGS.healthSysmageVitality": "Modern AGE (dommage alternatif : Blessure & Vitalité)",
+
   "SETTINGS.ExpanseDices": "Set de dés The Expanse",
   "SETTINGS.ExpanseDicesHint": "Sélection du set de dés The Expanse pour l'affichage dans le chat et avec Dice So Nice (se reconnecter pour appliquer la modification)",
+
+  "SETTINGS.powerFlavor": "Power Item flavor",
+  "SETTINGS.powerFlavorHint": "Select the prefered flavor from AGE books for Power types which affects Power labels and Power Points.",
+  "SETTINGS.powerFlavorPower": "Power & Power Points",
+  "SETTINGS.powerFlavorMana": "Spells & Mana Points",
+  "SETTINGS.powerFlavorSpell": "Spells & Spell Points",
+
   "age-system": {
     "SHEETS": {
       "charStandard": "Personnage AGE",
@@ -159,7 +212,13 @@
       "charFocusToOrg": "Les compétences de personnage ne peuvent pas être ajoutés aux Organisations",
       "orgFocusToChar": "Les compétences d'organisation ne peuvent pas être ajoutés à un personnage.",
       "vehicleItem": "Les véhicules ne peuvent pas recevoir d'objets.",
-      "breatherAppliedAll": "Le répit est appliqué à tous les personnages sélectionnés."
+      "breatherAppliedAll": "Le répit est appliqué à tous les personnages sélectionnés.",
+      "newFocusCompendia": "AGE System Settings (Focus Compendium): The following compendia will not appear as Focus Compendium options until refreshing: {list}.",
+      "oldFocusCompendia": "AGE System Settings (Focus Compendium): The following compendia doesn't exist and will leave the list after refreshing: {list}.",
+      "emptyAdv": "All levels for the Progressive Advancement have empty or zero for value. No Advancement saved.",
+      "emptyItemArr": "No Item selected for this advancement. No Advancement saved.",
+      "ownedClassLevelOnly": "Only Class Item types with owner can be leveled.",
+      "actorHasClass": "Actor already has a Class item!"
     },
     "spaceship": {
       "op": "Membre d'équipage",
@@ -446,6 +505,29 @@
     "addLevel": "Ajoutez le niveau",
     "autoApply": "Application automatique",
     "rollWithoutPP": "{name} n'a pas assez de points pour utiliser {item}. Lancer les dés quand même ?",
+    "powerFlavor": {
+      "power": {
+          "name": "Power",
+          "namePlural": "Powers",
+          "points": "Power Points",
+          "index": "PP",
+          "force": "Force"
+      },
+      "mana": {
+          "name": "Spell",
+          "namePlural": "Spells",
+          "points": "Mana Points",
+          "index": "MP",
+          "force": "Spellpower"
+      },
+      "spell": {
+          "name": "Spell",
+          "namePlural": "Spells",
+          "points": "Magic Points",
+          "index": "MP",
+          "force": "Spellpower"
+      }
+  },
     "powerPoints": "Points de Magie",
     "powerPointsIndex": "PM",
     "name": "Nom",
@@ -675,10 +757,39 @@
     "clickHelp": "Cliquez ici pour obtenir de l'aide.",
     "createCharacter": "Créer un personnage",
     "talentPlural": "Talents",
-    "stuntPlural": "Cascades",
-    "favoredStunts": "Cascades préférées",
+    "stuntPlural": "Prouesses",
+    "favoredStunts": "Prouesses préférées",
     "specialFeatures": "Caractéristiques spéciales",
     "threat": "Menace",
-    "rollable": "Enroulable"
+    "rollable": "Lancer possible",
+
+    "export": "Export",
+    "import": "Import",
+    "invalidFileContent": "File content is not valid",
+    "customEffects": "Custom Effects",
+    "customEffectsSet": "Custom Effects set",
+    "attkHeader": "Weapon Attack Roll Damage",
+
+    "advancement": "Advancement",
+    "improvements": "Improvements",
+    "advancementNew": "Select New Advancement",
+    "levelName": "Level {level}",
+    "advProgressiveTrait": "Progressive Trait",
+    "advNewItem": "New Item or Improve Existing One",
+    "advAbility": "Ability Advancement",
+    "defenseAndToughness": "Defense and Toughness",
+    "trait": "Trait",
+    "alias": "Alias",
+    "confirm": "Confirm",
+    "image": "Image",
+    "itemProgression": "Item Progression",
+    "itemProgressionHint": "Adds in the list below the option to Progress an existing Item from the chosen type.",
+    "itemOptionSingle": "Receive one Item",
+    "itemOptionSingleProgress": "Receive or Advance one Item",
+    "itemOptionMultiple": "Pick Items from list",
+    "itemOptionAll": "Receive all Items",
+    "dragAdvItem": "Drag Advancement Items in the space below",
+    "add": "Add",
+    "leveledImprovements": "Obtained Improvements"
   }
 }
