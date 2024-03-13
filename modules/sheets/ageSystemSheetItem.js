@@ -1,5 +1,7 @@
 import {ageSystem} from "../config.js";
 import { modifiersList, sortObjArrayByName } from "../setup.js";
+import { focusList } from "../settings.js";
+import {AdvancementAdd} from "../advancement.js";
 
 export default class ageSystemItemSheet extends ItemSheet {
     constructor(...args) {
@@ -17,8 +19,8 @@ export default class ageSystemItemSheet extends ItemSheet {
             //     this.options.height = this.position.height = "460";
             //     break;
             case "talent":
-                this.options.width = this.position.width = "900";
-                this.options.height = this.position.height = "545";
+                this.options.width = this.position.width = "1000";
+                this.options.height = this.position.height = "790";
                 break;          
             case "stunts":
                 // this.options.width = this.position.width = "300";
@@ -47,7 +49,11 @@ export default class ageSystemItemSheet extends ItemSheet {
             case "power":
                 // this.options.width = this.position.width = "700";
                 this.options.height = this.position.height = "480";
-                break;  
+                break; 
+            case "class":
+                // this.options.width = this.position.width = "770";
+                this.options.height = this.position.height = "700";
+                break; 
             default:
                 break;
         };
@@ -55,8 +61,8 @@ export default class ageSystemItemSheet extends ItemSheet {
    
     static get defaultOptions() {        
         return mergeObject(super.defaultOptions, {
-            height: 460,
-            width: 700,
+            height: 500,
+            width: 805,
             classes: ["age-system", "sheet", "item", "colorset-second-tier"],
             tabs: [{
                 navSelector: ".add-sheet-tabs",
@@ -73,12 +79,12 @@ export default class ageSystemItemSheet extends ItemSheet {
     getData(options) {
         const data = super.getData(options);
         data.item = data.document;
-        data.config = CONFIG.ageSystem;
+        ageSystem.focus = focusList(game.settings.get("age-system", "masterFocusCompendium"));
+        data.config = ageSystem;
         
         // Fetch localized name for Item Type
-        const i = this.item.type.toLowerCase();
-        const itemType = i[0].toUpperCase() + i.slice(1);
-        data.localType = game.i18n.localize(`ITEM.Type${itemType}`)
+        const i = this.item.type;
+        data.localType = game.i18n.localize(`TYPES.Item.${i}`)
         
         // Setting which ability settings will be used
         data.config.wealthMode = game.settings.get("age-system", "wealthType");
@@ -99,6 +105,24 @@ export default class ageSystemItemSheet extends ItemSheet {
         // Options Tab Preparation
         // Weapon Groups
         data.weaponGroups = ageSystem.weaponGroups;
+
+        // Primary Abilities (if applicable)
+        data.usePrimaryAbl = game.settings.get("age-system", "primaryAbl");
+        if (this.object.type === 'class' && data.usePrimaryAbl) {
+            const selectedAbl = foundry.utils.deepClone(ageSystem.abilities);
+            const allAbl = foundry.utils.deepClone(ageSystem.abilitiesTotal);
+            const extraAbl = {}
+            for (const k in allAbl) {
+                if (Object.hasOwnProperty.call(allAbl, k)) {
+                    if (!selectedAbl[k]) extraAbl[k] = game.i18n.localize(`age-system.${k}`);
+                }
+            };
+            data.ablOptions = {
+                ...selectedAbl,
+                ...extraAbl
+            };
+        }
+
         // Does it have Options tab?
         data.hasOptionsTab = (['weapon'].includes(this.item.type) && data.weaponGroups);
 
@@ -113,6 +137,11 @@ export default class ageSystemItemSheet extends ItemSheet {
         // Check if Use Fatigue setting is TRUE
         data.fatigueSet = game.settings.get("age-system", "useFatigue");
         data.system = data.data.system;
+
+        // If it is a Talent, check if it uses expanded talent degrees
+        if(this.item.type === "talent") {
+            data.expandedDegrees = ageSystem.talentDegrees.inUse.length > 3;
+        }
         return data
     };    
     
@@ -123,6 +152,7 @@ export default class ageSystemItemSheet extends ItemSheet {
             html.find(".mod-controls a.remove").click(this._onRemoveModifier.bind(this));
             html.find(".mod-controls a.toggle").click(this._onToggleModifier.bind(this));
             html.find(".toggle-feature").click(this._onToggleFeature.bind(this));
+            html.find(".trait-item").click(this._onTraitGroupToggle.bind(this));
             if (this.item.type === "focus") {
                 if (this.item.isOwned) {
                     html.find(".item-card-title").keyup(this._onOwnedFocusNameChange.bind(this));
@@ -133,19 +163,30 @@ export default class ageSystemItemSheet extends ItemSheet {
             const inputs = html.find("input");
             inputs.focus(ev => ev.currentTarget.select());
 
+            // Class Item Type commands only
+            html.find(".add-adv").click(this._onAddAdvance.bind(this));
+
         };
         html.find(".find-reference").click(this._onOpenPDF.bind(this));
 
         // Actions by sheet owner only
         if (this.item.isOwner) {
-            html.find(".wgroup-item").click(this._onWeaponGroupToggle.bind(this));
+            if (this.item.type === "class") new ContextMenu(html, ".advance", this.advContextMenu);
         };
 
         // Add class to TinyMCE
         const editor = html.find(".editor");
-        for (let i = 0; i < editor.length; i++) editor[i].classList.add('values');
+        for (let i = 0; i < editor.length; i++) {
+            const el = editor[i].parentElement;
+            // Add specific class unless Editor's parent node states otherwise
+            if (!el.classList.contains("no-value-class")) editor[i].classList.add('values')
+        };
 
         super.activateListeners(html);
+    };
+
+    _onAddAdvance(e) {
+        return new AdvancementAdd(this.document.uuid).render(true);
     };
 
     _onOpenPDF(e) {
@@ -195,20 +236,23 @@ export default class ageSystemItemSheet extends ItemSheet {
         return item.update({"system.modifiers": modifiers});
     }
 
-    async _onWeaponGroupToggle(event) {
+    _onTraitGroupToggle(event) {
         event.preventDefault();
         const item = this.item;
         const itemData = item.system;
-        const wgroupId = event.currentTarget.closest(".feature-controls").dataset.wgroupId.trim();
-        const wgroups = await itemData.wgroups;
-        const hasGroup = wgroups.includes(wgroupId);
+        const dataset = event.currentTarget.closest(".feature-controls").dataset
+        const traitId = dataset.traitId.trim();
+        const traitType = dataset.traitType;
+        const tGroups = itemData[traitType];
+        const hasGroup = tGroups.includes(traitId);
         if (hasGroup) {
-            const pos = wgroups.indexOf(wgroupId);
-            wgroups.splice(pos, 1);
+            const pos = tGroups.indexOf(traitId);
+            tGroups.splice(pos, 1);
         } else {
-            wgroups.push(wgroupId);
+            tGroups.push(traitId);
         }
-        return item.update({"system.wgroups": wgroups});
+        const path = `system.${traitType}`;
+        return item.update({[path]: tGroups});
     }
     
     // Adds an * in front of the owned Focus name whenever the user types a name of another owned Focus
@@ -232,4 +276,23 @@ export default class ageSystemItemSheet extends ItemSheet {
             };            
         };
     };
+
+    advContextMenu = [
+        {
+            name: game.i18n.localize("age-system.settings.edit"),
+            icon: '<i class="fas fa-edit"></i>',
+            callback: e => {
+                const data = e[0].dataset;
+                this.object._onChangeAdvancement(data, 'edit');
+            }
+        },
+        {
+            name: game.i18n.localize("age-system.settings.delete"),
+            icon: '<i class="fas fa-trash"></i>',
+            callback: e => {
+                const data = e[0].dataset;
+                this.object._onChangeAdvancement(data, 'remove');
+            }
+        }
+    ];
 };

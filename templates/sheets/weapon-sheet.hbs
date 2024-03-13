@@ -113,10 +113,12 @@
 
             <section class="sheet-tab-section">
                 {{!-- Main Tab --}}
-                <div class="tab main" data-group="primary" data-tab="main">
-                    <ul class="resource colorset-first-tier item-box"><li>
-                        {{editor system.longDesc target="system.longDesc" button=true owner=owner editable=true}}
-                    </li></ul>
+                <div class="tab main fill-space-height-100" data-group="primary" data-tab="main">
+                    <ul class="resource colorset-third-tier editor-parent">
+                        <li class="editor-parent no-value-class">
+                            {{editor system.longDesc target="system.longDesc" button=true owner=owner editable=true engine="prosemirror"}}
+                        </li>
+                    </ul>
                 </div>
 
                 {{!-- Bonuses Tab --}}
@@ -172,20 +174,7 @@
                     </ul>
 
                     {{#if weaponGroups}}
-                    <ul class="resource item-group">
-                        <li class="title colorset-first-tier">
-                            {{localize "SETTINGS.weaponGroups"}}
-                        </li>
-                        <li class="colorset-third-tier flexrow">
-                            <p>
-                                {{#each weaponGroups as |wgroup|}}
-                                <a class="feature-controls select-options item-name wgroup-item item-box {{#if (haswgroup wgroup ../item.system.wgroups)}}colorset-first-tier{{else}}colorset-third-tier{{/if}}" data-wgroup-id="{{wgroup}}">
-                                    {{wgroup}}
-                                </a>
-                                {{/each}}
-                            </p>
-                        </li>
-                    </ul>
+                    {{> "systems/age-system/templates/partials/weapon-group-block.hbs" ownedGroups=item.system.wgroups}}
                     {{/if}}
 
                     <ul class="resource item-group">
@@ -194,8 +183,8 @@
                         </li>
                         <li class="colorset-third-tier flexrow">
                             <p>
-                                <a class="select-options toggle-feature item-name item-box {{#if system.ranged}}colorset-first-tier{{else}}colorset-third-tier{{/if}}" data-feature="ranged">Ranged</a>
-                                <a class="select-options toggle-feature item-name item-box {{#if system.reloadable}}colorset-first-tier{{else}}colorset-third-tier{{/if}}" data-feature="reloadable">Reloadable</a>
+                                <a class="select-options toggle-feature item-name item-box {{#if system.ranged}}colorset-first-tier{{else}}colorset-third-tier{{/if}}" data-feature="ranged">{{localize "age-system.ranged"}}</a>
+                                <a class="select-options toggle-feature item-name item-box {{#if system.reloadable}}colorset-first-tier{{else}}colorset-third-tier{{/if}}" data-feature="reloadable">{{localize "age-system.reloadable"}}</a>
                             </p>
                         </li>
                         {{#if system.ranged}}

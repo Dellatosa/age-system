@@ -1,12 +1,11 @@
 <form class="actor-sheet {{cssClass}} flexrow no-flexwrap" autocomplete="off">
 
     <aside class="sidebar metal-background colorset-first-tier">
-        {{!-- <img src="{{data.config.greenRonin.fantasyAGE.logo}}" style="border: none;"> --}}
         <img class="document-picture" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
         <ul>
             {{#if data.config.healthSys.useInjury}}
             {{!-- Injury --}}
-            <li class="resource injury colorset-third-tier">
+            <li class="resource injury colorset-first-tier">
                 <div class="title">
                     <a class="roll-breather feature-controls" title="{{localize "age-system.breather"}}"><i class="fas fa-medkit"></i></a>
                     {{localize "age-system.injury"}}
@@ -61,7 +60,7 @@
             </li>
             {{else}}
             {{!-- Health / Fortune --}}
-            <li class="resource colorset-third-tier feature-controls" data-mode="{{system.gameMode.selected}}" data-local="sidebar">
+            <li class="resource colorset-first-tier feature-controls" data-mode="{{system.gameMode.selected}}" data-local="sidebar">
                 <div class="title">
                     <a class="roll-breather feature-controls"><i class="fas fa-medkit"></i></a>
                     {{data.config.healthSys.healthName}}
@@ -74,7 +73,7 @@
                     {{/if}}
                 </div>
                 <div class="labels flexrow">
-                    <label>Current</label>
+                    <label>{{localize "age-system.current"}}</label>
                     {{#if (ne system.health.set system.health.max)}}
                     <label for="">-</label>
                     {{/if}}
@@ -85,8 +84,8 @@
 
             {{!-- Power Points --}}
             {{#if system.usePowerPoints}}
-            <li class="resource colorset-third-tier">
-                <div class="title">{{localize "age-system.powerPoints"}}</div>
+            <li class="resource colorset-first-tier">
+                <div class="title">{{data.config.POWER_FLAVOR.points}}</div>
                 <div class="values flexrow">
                     <input class="value-data circle" type="number" name="system.powerPoints.value" value="{{system.powerPoints.value}}" data-dtype="Number" />
                     <input class="value-data circle" type="number" name="system.powerPoints.set" value="{{system.powerPoints.set}}" data-dtype="Number" />
@@ -95,7 +94,7 @@
                     {{/if}}
                 </div>
                 <div class="labels flexrow">
-                    <label>Current</label>
+                    <label>{{localize "age-system.current"}}</label>
                     {{#if (ne system.powerPoints.set system.powerPoints.max)}}
                     <label for="">-</label>
                     {{/if}}
@@ -105,7 +104,7 @@
             {{/if}}
 
             {{!-- Defense --}}
-            <li class="resource colorset-third-tier">
+            <li class="resource colorset-first-tier">
                 <div class="title">{{localize "age-system.defense"}}</div>
                 <div class="values flexrow">
                     <input class="value-data circle" disabled type="number" name="system.defense.total" value="{{system.defense.total}}" data-dtype="Number" />
@@ -130,7 +129,7 @@
             </li>
 
             {{!-- Speed --}}
-            <li class="resource colorset-third-tier">
+            <li class="resource colorset-first-tier">
                 <div class="title">{{localize "age-system.speed"}}</div>
                 <div class="values flexrow">
                     <input class="value-data circle" disabled type="number" name="system.speed.total" value="{{system.speed.total}}" data-dtype="Number" />
@@ -151,7 +150,7 @@
             </li>
 
             {{!-- Armor --}}
-            <li class="resource colorset-third-tier">
+            <li class="resource colorset-first-tier">
                 <div class="title">{{localize "age-system.armor"}}</div>
                 <div class="values flexrow">
                     <input class="value-data circle" disabled type="number" name="system.armor.impact" value="{{system.armor.impact}}" data-dtype="Number" />
@@ -173,7 +172,7 @@
 
             {{#if data.config.healthSys.useToughness}}
             {{!-- Toughness --}}
-            <li class="resource colorset-third-tier">
+            <li class="resource colorset-first-tier">
                 <div class="title">
                     {{#if data.config.healthSys.useInjury}}
                     <a class="roll-toughness feature-controls"><i class="fas fa-dice"></i></a>
@@ -200,7 +199,7 @@
 
             {{#if system.useFatigue}}
             {{!-- Fatigue --}}
-            <li class="resource colorset-third-tier">
+            <li class="resource colorset-first-tier">
                 <div class="title">{{localize "age-system.fatigue"}}</div>
                 <div class="values flexrow">
                     <input class="value-data circle" type="number" name="system.fatigue.entered" min="0" max="{{system.fatigue.max}}" value="{{system.fatigue.entered}}" data-dtype="Number" />
@@ -213,7 +212,7 @@
 
             {{#if system.useConviction}}
             {{!-- Conviction --}}
-            <li class="resource colorset-third-tier">
+            <li class="resource colorset-first-tier">
                 <div class="title">{{localize "age-system.conviction"}}</div>
                 <div class="values flexrow">
                     <input class="value-data circle" type="number" name="system.conviction.value" value="{{system.conviction.value}}" data-dtype="Number" />
@@ -280,12 +279,12 @@
                 </div>
             </div>
 
-            <div class="resource colorset-third-tier at-header">
+            <div class="resource colorset-first-tier at-header">
                 <div class="title">{{localize "age-system.level"}}</div>
                 <div class="values">
                     <input class="value-data circle" type="number" name="system.level" value="{{system.level}}" data-dtype="Number" />
                 </div>    
-                <div class="labels flexcol">
+                <div class="labels colorset-first-tier flexcol">
                     <div class="flexrow exp">
                         <input type="number" name="system.xp.value" value="{{system.xp.value}}" data-dtype="Number" />
                         <span>/</span>
@@ -303,10 +302,11 @@
                 <a class="char" data-tab="persona">{{localize "age-system.charPersona"}}</a>
                 <a class="char" data-tab="stunts">{{localize "age-system.stuntsContainer"}}</a>
                 <a class="char" data-tab="social">{{localize "age-system.social"}}</a>
-                <a class="char" data-tab="equip">{{localize "ITEM.TypeEquipment"}}</a>
+                <a class="char" data-tab="equip">{{localize "TYPES.Item.equipment"}}</a>
                 <a class="char" data-tab="talents">{{localize "age-system.talent"}}</a>
                 <a class="char" data-tab="powers">{{localize "age-system.power"}}</a>
                 <a class="char" data-tab="effects">{{localize "age-system.charEffects"}}</a>
+                <a class="char" data-tab="adv">{{localize "age-system.advancement"}}</a>
                 <a class="char" data-tab="options"><i class="fa fa-cog" aria-hidden="true"></i></a>
             </nav>
 
@@ -314,52 +314,54 @@
 
                 {{!-- Main Tab --}}
                 <div class="tab main" data-group="primary" data-tab="main">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-main.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/main.hbs"}}                    
                 </div>
 
                 {{!-- Persona Tab --}}
                 <div class="tab persona" data-group="primary" data-tab="persona">
-                    {{!-- {{> "systems/age-system/templates/partials/char-sheet-alt-persona.hbs"}} --}}
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-persona.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/persona.hbs"}}
                 </div>
 
                 {{!-- Stunts Tab --}}
                 <div class="tab stunts" data-group="primary" data-tab="stunts">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-stunts.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/stunts.hbs"}}
                 </div>
 
                 {{!-- Social Tab --}}
                 <div class="tab social" data-group="primary" data-tab="social">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-social.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/social.hbs"}}
                 </div>
 
                 {{!-- Equip Tab --}}
                 <div class="tab equip" data-group="primary" data-tab="equip">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-equip.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/equip.hbs"}}
                 </div>
 
                 {{!-- Talents Tab --}}
                 <div class="tab talents" data-group="primary" data-tab="talents">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-talents.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/talents.hbs"}}
                 </div>
 
                 {{!-- Powers Tab --}}
                 <div class="tab powers" data-group="primary" data-tab="powers">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-powers.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/powers.hbs"}}
                 </div>
 
                 {{!-- Effects Tab --}}
                 <div class="tab effects" data-group="primary" data-tab="effects">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-effects.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/effects.hbs"}}
                 </div>
 
                 {{!-- Options Tab --}}
                 <div class="tab options" data-group="primary" data-tab="options">
-                    {{> "systems/age-system/templates/partials/char-sheet-alt-options.hbs"}}
+                    {{> "systems/age-system/templates/sheets/char/options.hbs"}}
                 </div>
 
+                {{!-- Advancement Tab --}}
+                <div class="tab adv" data-group="primary" data-tab="adv">
+                    {{> "systems/age-system/templates/sheets/char/adv.hbs"}}
+                </div>
             </section>
-
         </div>
     </div>
     

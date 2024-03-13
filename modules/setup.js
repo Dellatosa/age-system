@@ -16,6 +16,20 @@ export function localizeConfig(toLocalize, noSort) {
     }
 }
 
+// Configure labels for Powers depending on System Setting options
+export function localizePower() {
+    const pFlavor = game.settings.get("age-system", "powerFlavor");
+    CONFIG.ageSystem.POWER_FLAVOR = {
+        name: game.i18n.localize(`age-system.powerFlavor.${pFlavor}.name`),
+        namePlural: game.i18n.localize(`age-system.powerFlavor.${pFlavor}.namePlural`),
+        force: game.i18n.localize(`age-system.powerFlavor.${pFlavor}.force`),
+        points: game.i18n.localize(`age-system.powerFlavor.${pFlavor}.points`),
+        index: game.i18n.localize(`age-system.powerFlavor.${pFlavor}.index`),
+        key: pFlavor
+    };
+}
+
+// Localize standard Token Effects for AGE System
 export function localizeAgeEffects() {
     const toLocalize = ["ageEffectsKeys"];
 
@@ -51,12 +65,10 @@ export function localizeAgeEffects() {
 // Select which Ability setting is used
 export function abilitiesName() {
     // Capture what is the ability set to be used
-    const settingAblOption = game.settings.get("age-system", "abilitySelection");
-    const ablOptions = ageSystem.abilitiesSettings;
     const orgAbl = ageSystem.abilitiesOrg;
-    const ablType = [ablOptions["main"], ablOptions["dage"], orgAbl];
+    const charAbl = ageSystem.abilities;
 
-    ageSystem.abilities = localizeObj(ablOptions[settingAblOption], true);
+    ageSystem.abilities = localizeObj(charAbl, true);
     ageSystem.abilitiesOrg = localizeObj(orgAbl, false);
 }
 
@@ -68,7 +80,6 @@ export function hidePrimaryAblCheckbox(html) {
         for (let k = 0; k < boxes.length; k++) {
             const e = boxes[k];
             e.remove();
-            // e.style.display = "none";
         };
     }
 
@@ -79,20 +90,24 @@ export function hidePrimaryAblCheckbox(html) {
         const original = e.children[0].querySelector(".abl-value.original");
         const total = e.children[0].querySelector(".abl-value.total");
         if (original.value === total.value) total.remove();
-        // if (original.value === total.value) total.style.display = "none";
     }
 };
 
 // Add item type in the title bar within brackets
 export function nameItemSheetWindow(itemWindow) {
-    const i = itemWindow.object.type.toLowerCase();
-    const itemType = i[0].toUpperCase() + i.slice(1);
+    const i = itemWindow.object.type;
     const appId = itemWindow.appId;
     const window = document.querySelector(`div[data-appid='${appId}']`);
     const windowHeader = window.children[0].firstElementChild;
-    windowHeader.textContent += ` [${game.i18n.localize("ITEM.Type" + itemType)}]`;
+    windowHeader.textContent += ` [${game.i18n.localize("TYPES.Item." + i)}]`;
 };
 
+/**
+ * Sorts Objects inside and array alphabetically according to passed object key
+ * @param {Array} nameArray Array of objects
+ * @param {String} nameKey Object key containing name to order in Alphabetic order
+ * @returns Sorted array of objects
+ */
 export function sortObjArrayByName(nameArray, nameKey) {
     return nameArray.sort(function(a, b) {
         const nameA = a[nameKey].toLowerCase();
@@ -108,26 +123,52 @@ export function sortObjArrayByName(nameArray, nameKey) {
 }
 
 /**
+ * DOM Manipulation on Advancement Config sheet
+ * @param {jQuery Object} html jQuery object within sheet
+ */
+export function prepAdvSetup (html) {
+    const traitList = html.find(`.trait-listing`);
+    for (let l = 0; l < traitList.length; l++) {
+        const e = traitList[l];
+        if (e.children.length == 0) e.style.display = "none"
+    }
+}
+
+/**
  * Add customization to Actor Sheet
  * @param {object} sheet Sheet configuration data
  * @param {jQuery Object} html jQuery object whithin sheet
  * @param {object} data data used to render sheet
  */
-export async function prepSheet (sheet, html, data) {
+export async function prepSheet (sheet, html, doc) {
     // Add color customization
-    html.addClass(`colorset-${ageSystem.colorScheme}`)
+    const base = html.closest(`.age-system.sheet`);
+    const classes = [];
+    const colors = [];
+    for (let i = 0; i < base[0].classList.length; i++) {
+        classes.push(base[0].classList[i]);
+    };
+    for (let k = 0; k < classes.length; k++) {
+        const c = classes[k];
+        if (c.indexOf(`colorset-`) > -1) colors.push(c)
+    }
+    if (colors.length > 0) colors.map(c => base[0].classList.remove(c))
+    base[0].classList.add(`colorset-${ageSystem.colorScheme}`);
     
+    // Add minimum width for Vehicle and Spaceship sheets
+    if(['vehicle', 'spaceship'].includes(doc.data.type)) base.css("min-width", "665px");
+
     // Enrich HMTL text
-    enrichTinyMCE(html);
+    enrichTinyMCE(`div.editor-content`);
 }
 
 /**
  * Enrich TinyMCE editor text and add class on Content Links and inline rolls
  * @param {jQuery Object} html jQuery object with fields to be enriched
  */
-export async function enrichTinyMCE(html) {
+export async function enrichTinyMCE(selector) {
     // Enrich HMTL text
-    const els = $(`div.editor-content`);
+    const els = $(selector);
     for (let i = 0; i < els.length; i++) {
         els[i].innerHTML = await TextEditor.enrichHTML(els[i].innerHTML, {async: true});
     }

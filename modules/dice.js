@@ -19,10 +19,6 @@ export function resumeFormula(formula, data = {}) {
         const e = terms[t];
         let f = e.formula;
         if (e.flavor) f = f.replace(`[${e.flavor}]`, '');
-        // Compatibility with 0.8.x
-        if (!isNewerVersion(ageSystem.coreVersion, "0.8.9")) {
-            e.isDeterministic = e instanceof Die || e instanceof ParentheticalTerm ? false : true
-        }
         if (!e.isDeterministic) {
             if (t != 0) parts.nonDet += `${terms[t-1].formula}`;
             parts.nonDet += `${f}`;
@@ -56,7 +52,7 @@ export function quickEval(expression) {
 // TO DO - add flavor identifying the item and button to roll damage/healing/whatever
 export async function ageRollCheck({event = null, actor = null, abl = null, itemRolled = null, rollTN = null, rollUserMod = null, atkDmgTradeOff = null,
     hasTest = false, rollType = null, vehicleHandling = false, selectAbl = false, rollVisibility = false, flavor = null, flavor2 = null, moreParts = false,
-    isStuntAttack = false, extraSP = 0, stackSP = true}={}) {
+    isStuntAttack = false, extraSP = 0, stackSP = true, ppCost = null}={}) {
 
     const ROLL_TYPE = ageSystem.ROLL_TYPE;
     const actorType = actor?.type;
@@ -74,20 +70,50 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
     // Prompt user for extra Roll Options if Alt + Click is used to initialize roll
     let extraOptions = null;
     if (!event.ctrlKey && event.altKey || selectAbl || event.type === "contextmenu") {
-        extraOptions = await getAgeRollOptions(itemRolled, {targetNumber: rollTN, selectAbl, rollVisibility, actorType, rollType, ROLL_TYPE});
+        extraOptions = await getAgeRollOptions(itemRolled, {targetNumber: rollTN, selectAbl, rollVisibility, actorType, rollType, ROLL_TYPE, ppCost});
         if (extraOptions.cancelled) return;
         if (extraOptions.rollTN) rollTN = extraOptions.rollTN;
         if (extraOptions.selectedAbl) abl = extraOptions.selectedAbl;
         if (extraOptions.stuntAttack) isStuntAttack = true;
         if (extraOptions.extraSP) extraSP = extraOptions.extraSP;
         if (extraOptions.stackSP !== undefined) stackSP = extraOptions.stackSP;
+        if (extraOptions.pointCost) ppCost.cost = extraOptions.pointCost;
         rollUserMod = extraOptions.ageRollMod;
         atkDmgTradeOff = extraOptions.atkDmgTradeOff;
     };
 
+    // Consume Power Points if Game Settings and Item type allows - TODO use case when final cost is higher than maximum Power Points available.
+    if (ageSystem.autoConsumePP && actor && ppCost) {
+        const cost = ppCost.cost;
+        const remainingPP = ppCost.remainingPP
+        const newPP = remainingPP - cost;
+        if (newPP < 0) {
+            const castAnyway = await new Promise(resolve => {
+                const data = {
+                    content: `<p>${game.i18n.format("age-system.rollWithoutPP", {name: actor.name, item: this.name})}</p>`,
+                    buttons: {
+                        normal: {
+                            label: game.i18n.localize("age-system.roll"),
+                            callback: html => resolve({roll: true})
+                        },
+                        cancel: {
+                            label: game.i18n.localize("age-system.cancel"),
+                            callback: html => resolve({roll: false}),
+                        }
+                    },
+                    default: "normal",
+                    close: () => resolve({cancelled: true}),
+                }
+                new Dialog(data, null).render(true);
+            });
+            if (!castAnyway.roll) return false;
+        }
+        actor.update({"system.powerPoints.value": newPP < 0 ? 0 : remainingPP - cost}, {value: newPP < 0 ? -remainingPP : -cost, type: 'power'})
+    }
+
     // Set roll mode
     // const rMode = setBlind(event);
-    const rollMode = event.shiftKey ? "blindroll" : "roll";
+    const rollMode = event.shiftKey ? CONST.DICE_ROLL_MODES.BLIND : "roll";
     let rollData = {...actor?.actorRollData()};
     let partials = [];
     rollData.abilityName = "...";
@@ -297,7 +323,7 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
         };
     }
 
-    if (!flavor) flavor = actor?.name ?? game.user.name;
+    if (!flavor) flavor = (isToken ? actor?.token.name : actor?.name) ?? game.user.name;
     const stuntFlavor = game.i18n.localize("age-system.stuntAttack");
     switch (rollType) {
         case ROLL_TYPE.ATTACK || ROLL_TYPE.MELEE_ATTACK || RANGED_ATTACK:
@@ -422,8 +448,7 @@ export async function ageRollCheck({event = null, actor = null, abl = null, item
     // END MODIF DELLATOSA // */
 
     if (!chatData.sound) chatData.sound = CONFIG.sounds.dice;
-    if (rollMode === "blindroll") chatData = await ChatMessage.applyRollMode(chatData, rollMode);
-    return ChatMessage.create(chatData);
+    return ChatMessage.create(chatData, {rollMode});
 };
 
 // Check if the roll has Weapon Group penalty
@@ -465,6 +490,7 @@ async function getAgeRollOptions(itemRolled, data = {}) {
 
     const html = await renderTemplate(template, {
         ...data,
+        config: ageSystem,
         stackSP: ageSystem.stuntAttackPoints > 1 ? false : true,
         itemType: type
     });
@@ -476,6 +502,7 @@ async function getAgeRollOptions(itemRolled, data = {}) {
             buttons: {
                 normal: {
                     label: game.i18n.localize("age-system.roll"),
+                    icon: `<i class="fa-light fa-dice"></i>`,
                     callback: html => {
                         const fd = new FormDataExtended(html[0].querySelector("form"));
                         resolve(fd.object)
@@ -483,6 +510,7 @@ async function getAgeRollOptions(itemRolled, data = {}) {
                 },
                 cancel: {
                     label: game.i18n.localize("age-system.cancel"),
+                    icon: `<i class="fa-solid fa-xmark"></i>`,
                     callback: html => resolve({cancelled: true}),
                 }
             },
@@ -500,7 +528,8 @@ async function getDamageRollOptions(addFocus, stuntDmg, data = {}) {
         stuntDmg,
         selectAbl: data.selectAbl,
         abilities: data.actorType === "char" ? ageSystem.abilities : ageSystem.abilitiesOrg,
-        useFocus: data.actorType === "organization"
+        useFocus: data.actorType === "organization",
+        setDmgExtraDice: data.setDmgExtraDice ?? 0
     });
 
     return new Promise(resolve => {
@@ -510,6 +539,7 @@ async function getDamageRollOptions(addFocus, stuntDmg, data = {}) {
             buttons: {
                 normal: {
                     label: game.i18n.localize("age-system.roll"),
+                    icon: `<i class="fa-light fa-dice"></i>`,
                     callback: html => {
                         const fd = new FormDataExtended(html[0].querySelector("form"));
                         resolve(fd.object);
@@ -517,6 +547,7 @@ async function getDamageRollOptions(addFocus, stuntDmg, data = {}) {
                 },
                 cancel: {
                     label: game.i18n.localize("age-system.cancel"),
+                    icon: `<i class="fa-solid fa-xmark"></i>`,
                     callback: html => resolve({cancelled: true}),
                 }
             },
@@ -796,7 +827,7 @@ export async function plotDamage (actor) {
     const atkDmgTradeOff = Number(dmgOpt.atkDmgTradeOff);
 
     if (abl && abl !== 'no-abl') {
-        rollData.ability = actorData.abilities[abl].value;
+        rollData.ability = actor.system.abilities[abl].value;
         formula += ` + @ability[${game.i18n.localize(`age-system.org.${abl}`)}]`;
     }
 
@@ -835,7 +866,7 @@ export async function plotDamage (actor) {
         finalValue: dmgRoll.total,
         diceTerms: dmgRoll.terms,
         colorScheme: `colorset-${game.settings.get("age-system", "colorScheme")}`,
-        flavor: actor.name,
+        flavor: actor.isToken ? actor.token.name : actor.name,
         flavor2: "structure damage",
         user: game.user,
         useInjury: undefined, //modificado
@@ -850,13 +881,15 @@ export async function plotDamage (actor) {
         type: CONST.CHAT_MESSAGE_TYPES.ROLL,
         flags: {
             "age-system": {
-                type: "orgDamage",
-                damageData: {
-                    // ...dmgDesc,
-                    totalDamage: rollData.finalValue,
-                    attacker: actor.name,
-                    attackerId: actor.uuid,
-                    healthSys: undefined //modificado
+                ageroll: {
+                    rollType: "damage",
+                    rollData: {
+                        // ...dmgDesc,
+                        totalDamage: rollData.finalValue,
+                        attacker: actor.name,
+                        actorId: actor.uuid,
+                        healthSys: undefined //modificado
+                    }
                 }
             }
         }
@@ -892,9 +925,22 @@ export async function itemDamage({
     actorWgroups = []}={}) {
 
     // Prompt user for Damage Options if Alt + Click is used to initialize damage roll
+    const ownerName = item.actor.isToken ? item.actor.token.name : item.actor.name;
     let damageOptions = null;
-    if ((!event.ctrlKey && event.altKey) || event.type === "contextmenu") {
-        damageOptions = await getDamageRollOptions(addFocus, stuntDie);
+
+    // Check if CRTL + Click or CRTL + ALT + click was used to generate the damage input
+    if (event.ctrlKey) {
+        let extraD
+        if (event.altKey) {
+            extraD = 2
+        } else {
+            extraD = 1
+        };
+        dmgExtraDice = extraD
+    }
+
+    if ((!event.ctrlKey && event.altKey) || event.type === "contextmenu") {;
+        damageOptions = await getDamageRollOptions(addFocus, stuntDie, {setDmgExtraDice: dmgExtraDice});
         if (damageOptions.cancelled) return;
         dmgExtraDice = damageOptions.setDmgExtraDice;
         dmgGeneralMod = damageOptions.setDmgGeneralMod;
@@ -989,17 +1035,6 @@ export async function itemDamage({
             rollData.allOutAttack = allOutAttackMod;
         };
 
-        // Adds extra damage for CTRL + click (+1D6) or CTRL + ALT + click (+2D6)
-        if (event.ctrlKey) {
-            let extraD
-            if (event.altKey) {
-                extraD = 2
-            } else {
-                extraD = 1
-            };
-            damageFormula += healthSys.useInjury ? ` + ${extraD}[+${extraD}]` : ` + ${extraD}D6[+${extraD}D6]`;
-        };
-
         // Adds specific Stunt Damage dice
         if (stuntDamage && stuntDamage != 0) {
             const stuntDmgDice = healthSys.useInjury ? stuntDamage : `${stuntDamage}D6`;
@@ -1043,7 +1078,7 @@ export async function itemDamage({
         finalValue: wGroupPenalty? Math.floor(dmgRoll.total/2) : dmgRoll.total,
         diceTerms: dmgRoll.terms,
         colorScheme: `colorset-${game.settings.get("age-system", "colorScheme")}`,
-        flavor: item ? `${item.name} | ${item.actor.name}` : damageDesc,
+        flavor: item ? `${item.name} | ${ownerName}` : damageDesc,
         flavor2: item ? damageDesc : null,
         user: game.user,
         useInjury: healthSys.useInjury
@@ -1057,13 +1092,15 @@ export async function itemDamage({
         type: CONST.CHAT_MESSAGE_TYPES.ROLL,
         flags: {
             "age-system": {
-                type: "damage",
-                damageData: {
-                    ...dmgDesc,
-                    totalDamage: rollData.finalValue,
-                    attacker: item.actor.name,
-                    attackerId: item.actor.uuid,
-                    healthSys
+                ageroll: {
+                    rollType: "damage",
+                    rollData: {
+                        ...dmgDesc,
+                        totalDamage: rollData.finalValue,
+                        attacker: item.actor.name,
+                        actorId: item.actor.uuid,
+                        healthSys
+                    }
                 }
             }
         }

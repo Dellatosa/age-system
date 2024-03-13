@@ -36,11 +36,17 @@ export class ageSystemActor extends Actor {
         }
     }
 
+    /** @override */
+    async _preCreate(data, options, userId) {
+        await super._preCreate(data, options, userId);
+        const updates = {};
+        if (!data.img || data.img === CONST.DEFAULT_TOKEN) updates.img = ageSystem.actorIcons[this.type];
+        this.updateSource(updates);        
+    }
+
     prepareBaseData() {
         const actorData = this;
         const data = actorData.system;
-        
-        if (actorData.img == CONST.DEFAULT_TOKEN) actorData.img = ageSystem.actorIcons[actorData.type];
 
         // Check if split Armor is in use
         data.useBallisticArmor = game.settings.get("age-system", "useBallisticArmor");
@@ -82,18 +88,88 @@ export class ageSystemActor extends Actor {
 
     /** @override */
     prepareEmbeddedDocuments() {
-        // super.prepareEmbeddedDocuments()
-        const embeddedTypes = this.constructor.metadata.embedded || {};
-        for ( const collectionName of Object.values(embeddedTypes) ) {
-          for ( let e of this[collectionName] ) {
-            e.prepareData();
-          }
-        }
+        super.prepareEmbeddedDocuments();
         
         // Apply Item Modifiers to Actor before applying Active Effects!
         this.applyItemModifiers();
+    }
 
-        this.applyActiveEffects();
+    /**
+    * Apply any transformations to the Actor data which are caused by ActiveEffects by adding code in the original FVTT code
+    */
+    applyActiveEffects() {
+        const overrides = {};
+    
+        this.statuses ??= new Set();
+        // Identify which special statuses had been active
+        const specialStatuses = new Map();
+        for ( const statusId of Object.values(CONFIG.specialStatusEffects) ) {
+          specialStatuses.set(statusId, this.statuses.has(statusId));
+        }
+        this.statuses.clear();
+    
+        // Organize non-disabled effects by their application priority
+        const changes = [];
+        for ( const effect of this.allApplicableEffects() ) {
+          if ( !effect.active ) continue;
+          changes.push(...effect.changes.map(change => {
+            const c = foundry.utils.deepClone(change);
+            c.effect = effect;
+            c.priority = c.priority ?? (c.mode * 10);
+            return c;
+          }));
+          for ( const statusId of effect.statuses ) this.statuses.add(statusId);
+        }
+        changes.sort((a, b) => a.priority - b.priority);
+
+        
+        // ---------------------- AGE SYSTEM MODIFICATION STARTS
+        // Identify Active Effects to be applied after DerivedData
+        const delayedOverrides = [];
+        for (let i = changes.length-1; i >= 0; i--) {
+            const c = changes[i];
+            if ([...ageSystem.actorDerivedDataKey, ...ageSystem.charAblKey].includes(c.key)) {
+                delayedOverrides.push(c);
+                changes.splice(i);
+            }
+        }
+        this.delayedOverrides = delayedOverrides;
+        // ---------------------- AGE SYSTEM MODIFICATION ENDS
+    
+        // Apply all changes
+        for ( let change of changes ) {
+          if ( !change.key ) continue;
+          const changes = change.effect.apply(this, change);
+          Object.assign(overrides, changes);
+        }
+    
+        // Expand the set of final overrides
+        this.overrides = foundry.utils.expandObject(overrides);
+    
+        // Apply special statuses that changed to active tokens
+        let tokens;
+        for ( const [statusId, wasActive] of specialStatuses ) {
+          const isActive = this.statuses.has(statusId);
+          if ( isActive === wasActive ) continue;
+          tokens ??= this.getActiveTokens();
+          for ( const token of tokens ) token._onApplyStatusEffect(statusId, isActive);
+        }
+    }
+
+    _applyDelayedActiveEffects(paths) {
+        const dOverrides = {}
+        const changes = foundry.utils.deepClone(this.delayedOverrides)
+        // Apply all changes
+        for ( let change of changes ) {
+            if ( !change.key || !paths.includes(change.key)) continue;
+            const changes = change.effect.apply(this, change);
+            Object.assign(dOverrides, changes);
+        }
+    
+        // Expand the set of final overrides
+        const over = foundry.utils.expandObject(dOverrides);
+        if (this.overrides) this.overrides = foundry.utils.mergeObject(this.overrides, over)
+        else this.overrides = over;
     }
 
     prepareDerivedData() {
@@ -217,7 +293,7 @@ export class ageSystemActor extends Actor {
         this.items.forEach(i => {
             const iMods = i.system.modifiersByType;
             const active = i.system.activate || i.system.equiped;
-            if (iMods !== {} && active) {
+            if (foundry.utils.isEmpty(iMods) && active) {
                 for (const k in iMods) {
                     if (Object.hasOwnProperty.call(iMods, k)) {
                         if (mods[k]) {
@@ -255,15 +331,39 @@ export class ageSystemActor extends Actor {
         const data = actorData.system;
         data["ownedMods"] = mods;
 
+     
+    }
+
+    _prepareDerivedDataChar() {
+        // Calculate Abilities
+        const actorData = this;
+        const data = actorData.system;
+        const mods = data.ownedMods;
+        
         // Applying Abilities mods
         const settingAbls = ageSystem.abilities;
         for (const ablKey in settingAbls) {
             if (settingAbls.hasOwnProperty(ablKey)) {
-                data.abilities[ablKey].mod = mods[ablKey]?.formParts?.detValue ?? 0;
-                data.abilities[ablKey].total = data.abilities[ablKey].mod + data.abilities[ablKey].value
-                data.abilities[ablKey].testMod = mods[`${ablKey}Test`]?.formParts?.detValue ?? 0;
+                data.abilities[ablKey].mod = (mods[ablKey]?.formParts?.detValue ?? 0) + (data.abilities[ablKey].mod ?? 0);
+                data.abilities[ablKey].total = data.abilities[ablKey].mod + data.abilities[ablKey].value;
+                data.abilities[ablKey].testMod = (mods[`${ablKey}Test`]?.formParts?.detValue ?? 0) + (data.abilities[ablKey].testMod ?? 0);
             };
         };
+
+        // Apply Abilities Active Effects
+        this._applyDelayedActiveEffects(ageSystem.charAblKey)
+        
+        // Calculate derived data
+        this._preparePostModCharData();
+        
+        // Apply delayed Active Effects on other derived data
+        this._applyDelayedActiveEffects(ageSystem.actorDerivedDataKey);
+    }
+
+    _preparePostModCharData() {
+        const actorData = this;
+        const data = actorData.system;
+        const mods = data.ownedMods;
 
         // Recalculate all Mods to ensure contribution from Abilities are updated
         const recalcMod = data.ownedMods;
@@ -272,23 +372,14 @@ export class ageSystemActor extends Actor {
                 const mGroup = recalcMod[k];
                 mGroup.formParts = Dice.resumeFormula(mGroup.totalFormula, foundry.utils.deepClone(this.actorRollData()));
             }
-        }
-
-        this._preparePostModCharData();
-    }
-
-    _preparePostModCharData() {
-        const actorData = this;
-        const data = actorData.system;
-
-        const mods = data.ownedMods;
+        }        
 
         // Armor Penalty & Strain
         data.armor.penalty = Math.max(mods?.armorPenalty?.formParts?.detValue ?? 0, 0);
-        data.armor.strain = Math.max(mods?.armorStrain?.formParts?.detValue ?? 0, 0)
+        data.armor.strain = Math.max(mods?.armorStrain?.formParts?.detValue ?? 0, 0);
 
         // All damage delt by Actor
-        data.dmgMod = mods?.actorDamage?.totalFormula ?? "0";
+        data.dmgMod = mods?.actorDamage?.totalFormula ?? (data.dmgMod ?? "0");
 
         // Actor All Tests
         const testModFormula = mods?.testMod?.totalFormula;
@@ -302,10 +393,10 @@ export class ageSystemActor extends Actor {
         data.defense.mod = mods?.defense?.formParts?.detValue ?? 0;
 
         // Impact Armor
-        data.armor.impact = mods?.impactArmor?.formParts?.detValue ?? 0;
+        data.armor.impact = (mods?.impactArmor?.formParts?.detValue ?? 0) + (data.armor.impact ?? 0);
 
         // Ballistic Armor
-        data.armor.ballistic = mods?.ballisticArmor?.formParts?.detValue ?? 0;
+        data.armor.ballistic = (mods?.ballisticArmor?.formParts?.detValue ?? 0) + (data.armor.ballistic ?? 0);
 
         // Toughness
         data.armor.toughness.mod = mods?.toughness?.formParts?.detValue ?? 0;
@@ -320,7 +411,8 @@ export class ageSystemActor extends Actor {
         data.guardUp.mod = mods?.guardupMnv?.formParts?.detValue ?? 0;
 
         // All Out Attack
-        data.allOutAttack.mod = mods?.allOutAtkMnv?.formParts?.detValue ?? 0;
+        // data.allOutAttack.mod = mods?.allOutAtkMnv?.formParts?.detValue ?? 0;
+        // data.allOutAttack.dmgBonus = mods?.allOutAtkMnv?.formParts?.detValue ?? 0;
 
         // Max Health
         data.health.mod = mods?.maxHealth?.formParts?.detValue ?? 0;
@@ -370,19 +462,16 @@ export class ageSystemActor extends Actor {
         data.resources.total = data.resources.base + Number(data.resources.mod);
     };
 
-    _prepareDerivedDataChar() {
-    }
-
     _spaceshipItemModifiers() {
         const actorData = this;
         const data = actorData.system;
 
         // Items With Mod
-        const ownedItems = actorData.items.filter(i => i.type !== "special" && i.type !== "rollable" && i.type !== "weapon");
+        const ownedItems = actorData.items.filter(i => !['special', 'rollable', 'weapon'].includes(i.system.type));
         let bonuses = {};
         ownedItems.map(f => {
             const item = f.system;
-            const dataType = f.type;
+            const dataType = item.type;
             if (!bonuses[dataType]) {
                 bonuses = {
                     ...bonuses,
@@ -401,35 +490,6 @@ export class ageSystemActor extends Actor {
 
         data.defenseTotal = 10;
         this.sortPassengers();
-        // let invalidPassengers = [];
-        // for (let pi = 0; pi < data.passengers.length; pi++) {
-        //     const p = data.passengers[pi];
-        //     if (!game.actors) {
-        //         game.postReadyPrepare.push(this);
-        //     } else {
-        //         const pData = p.isToken ? game.actors.tokens[p.id] : game.actors.get(p.id);
-        //         if (!pData) {
-        //             invalidPassengers.push(pi);
-        //         } else {
-        //             p.name = pData.name;
-        //             p.picture = pData.prototypeToken.texture.src;
-        //         };
-        //         if (p.id === data.conductor && pData) {
-        //             p.isConductor = true;
-        //             const defenseAbl = pData.system.abilities[data.handling.useAbl].total;
-        //             const defenseFocus = this.checkFocus(data.handling.useFocus);
-        //             const defenseValue = !defenseFocus?.focusItem ? 0 : defenseFocus.focusItem.system.initialValue;
-        //             data.defenseTotal += defenseAbl + defenseValue;
-        //         } else {
-        //             p.isConductor = false;
-        //         }
-        //     }
-        // }
-        // // Remove passengers whose sheets/tokens are not valid anymore
-        // for (let ip = 0; ip < invalidPassengers.length; ip++) {
-        //     const i = invalidPassengers[ip];
-        //     data.passengers.splice(i, 1);
-        // };
         data.pob = data.passengers.length;
 
     };
@@ -705,8 +765,10 @@ export class ageSystemActor extends Actor {
                 'system.injury.marks': newMarks
             },
             {
-                value: game.i18n.localize(`age-system.${injuryDegree}InjuryInflicted`),
-                type: 'injury'
+                diffHP: {
+                    value: game.i18n.localize(`age-system.${injuryDegree}InjuryInflicted`),
+                    type: 'injury'
+                }
             }
         );
         // Returns a summary object
@@ -760,7 +822,10 @@ export class ageSystemActor extends Actor {
             "system.injury.degrees.serious": injuries.degrees.serious,
             "system.injury.degrees.severe": injuries.degrees.severe,
         }
-        this.update(updateData, {value: totalHealed, type: 'numeric'});
+        this.update(updateData, {diffHP: {
+            value: totalHealed,
+            type: 'numeric'
+        }});
         return true
     }
 
@@ -789,7 +854,7 @@ export class ageSystemActor extends Actor {
         switch (actorType) {
             case 'char':
                 previousHP = charData.health.value;
-                maxHP = charData.health.set
+                maxHP = charData.health.max
                 updatePath = 'system.health.value';
                 break;
             case 'organization':
@@ -818,7 +883,10 @@ export class ageSystemActor extends Actor {
             }
         }
         const deltaHP = summary.newHP - summary.previousHP
-        this.update({[updatePath]: summary.newHP}, {value: deltaHP, type: 'numeric'});
+        this.update({[updatePath]: summary.newHP}, {diffHP: {
+            value: deltaHP,
+            type: 'numeric'
+        }});
         return summary
     }
 
@@ -864,16 +932,18 @@ export class ageSystemActor extends Actor {
                 title: game.i18n.localize("age-system.breather"),
                 content: html,
                 buttons: {
+                    cancel: {
+                        icon: `<i class="fa fa-times" aria-hidden="true"></i>`,
+                        label: game.i18n.localize("age-system.cancel"),
+                        callback: html => resolve({cancelled: true}),
+                    },
                     normal: {
                         icon: `<i class="fa fa-check" aria-hidden="true"></i>`,
+                        label: game.i18n.localize("age-system.confirm"),
                         callback: html => {
                             const fd = new FormDataExtended(html[0].querySelector("form"));
                             resolve(fd.object)
                         }
-                    },
-                    cancel: {
-                        icon: `<i class="fa fa-times" aria-hidden="true"></i>`,
-                        callback: html => resolve({cancelled: true}),
                     }
                 },
                 default: "normal",
@@ -886,10 +956,12 @@ export class ageSystemActor extends Actor {
     /** @inheritdoc */
     _onUpdate(data, options, userId) {
         super._onUpdate(data, options, userId);
-        this._displayScrollingText(options.value, options.type);
+        if (options.diffHP) this._displayScrollingText(options.diffHP);
     }
 
-    _displayScrollingText(value, type) {
+    _displayScrollingText(diffHP) {
+        let value = diffHP.value;
+        const type = diffHP.type;
         if ( !value ) return;
         if (type !== 'injury') value = value.signedString();
 
@@ -910,9 +982,8 @@ export class ageSystemActor extends Actor {
 
         const tokens = this.isToken ? [this.token?.object] : this.getActiveTokens(true);
         for ( let t of tokens ) {
-            // If player isn't token Onwer, display question marks instead of value
             if (t.visible || t.renderable) {
-                if (!t.isOwner) value = "???";
+                if (!t.isOwner) value = "???"; // If player isn't token Onwer, display question marks instead of value
                 canvas.interface.createScrollingText(t.center, value, {
                     anchor: CONST.TEXT_ANCHOR_POINTS.TOP,
                     distance: 2*t.h,
@@ -933,13 +1004,13 @@ export class ageSystemActor extends Actor {
      */
     async handleConditions(condId) {
         if (["spaceship", "vehicle"].includes(this.type)) return null;
-        const effectsOn = this.effects.filter(e => e.flags?.["age-system"]?.isCondition && e.flags?.core?.statusId === condId);
+        const effectsOn = this.effects.filter(e => e.flags?.["age-system"]?.isCondition && e.statuses.has(condId));
         
         if (effectsOn.length < 1) {
             // If there is no Effect on, create one
             const newEffect = foundry.utils.deepClone(CONFIG.statusEffects.filter(e => e.id === condId)[0]);
-            newEffect["flags.core.statusId"] = newEffect.id;
-            if (newEffect?.flags?.["age-system"].conditionType !== 'custom') newEffect.label = game.i18n.localize(newEffect.label);
+            newEffect.statuses = [newEffect.id];
+            if (newEffect?.flags?.["age-system"].conditionType !== 'custom') newEffect.name = game.i18n.localize(newEffect.name);
             delete newEffect.id;
             await this.createEmbeddedDocuments("ActiveEffect", [newEffect]);
         } else {

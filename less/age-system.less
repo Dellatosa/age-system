@@ -1,6 +1,5 @@
 @import "./item-sheet.less";
 @import "./item-sheet-chat.less";
-@import "./char-sheet.less";
 @import "./char-sheet-alt.less";
 @import "./char-stat-block.less";
 @import "./vehicle-sheet.less";
@@ -84,23 +83,26 @@ body *:not(i, .fa, .far, .fas) {
     }
 }
 
-/*---------Background---------------------*/
-// .window-app.journal-sheet .window-content,
+/*-----------Background-----------*/
+.window-app.journal-sheet {
+    .journal-entry-content,
+    form.editable {
+        background: rgba(254, 254, 254, 0.9);
+    }
+};
 .window-app.sheet.char .window-content,
 .window-app.sheet.vehicle .window-content,
 .window-app.sheet.spaceship .window-content {
     background-image: none;
     background: none;
     background-color: rgba(207, 194, 188, 0.6);
-    // padding: 0;
-    // margin: 8px;
 }
 .window-app.sheet.item .window-content {
     background-image: none;
     background: none;
 }
 
-// Opacity Degrees
+/*-----------Opacity Degrees-----------*/
 .age-opacity-hover {
     opacity: 0.6;
 }
@@ -115,6 +117,13 @@ body *:not(i, .fa, .far, .fas) {
         opacity: 0.5
     }
 }
+.window-resizable-handle {
+    opacity: 0;
+};
+.window-resizable-handle:hover {
+    opacity: 0.8;
+};
+
 
 // Override box color
 .age-system {
@@ -127,6 +136,13 @@ body *:not(i, .fa, .far, .fas) {
     span.toggle-condition:hover,
     .mouse-to-pointer:hover:not(:disabled) {
         box-shadow: 0 0 5px silver !important;
+    }
+
+    .prosemirror > menu {
+        background-color: rgba(255,255,255,.5);
+    }
+    select > option {
+        background-color: rgba(0,0,0,0.6);
     }
 
     hr { 
@@ -179,7 +195,90 @@ body *:not(i, .fa, .far, .fas) {
     }
 }
 
+.age-system-dialog.advancement-config {
+    font-size: 12px;
+    button.file-picker {
+        width: 35px;
+        flex: 0 0 35px;
+    }
+    .options-column {
+        .option {
+            margin-bottom: 4px;
+        }
+        label {
+            flex: 0 0 130px;
+            margin: auto 0;
+        };
+        input, select, span {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+    };
+
+    footer {
+        border-top: 2px groove white;
+        margin-top: 4px;
+        padding: 4px 0;
+    }
+    .list-table-content {
+        text-align: center;
+        li {
+            display: flex;
+            flex-direction: row;
+            height: 26px;
+        }
+        input {
+            size: 24px;
+        }
+    }
+    .list-level {
+        width: 50px;
+    }
+    .list-level-value {
+        width: 120px;
+    };
+    .item-drop-area {
+        border-top: 2px groove white;
+        min-height: 200px;
+        li {
+            border-bottom: none;
+        };
+        ol.trait-listing > li:only-of-type {
+            display: none;
+        };
+    };
+    li {
+        border-bottom: 2px groove white;
+        padding: 4px;
+    };
+    li:last-of-type {
+        border-bottom: none;
+    };
+    li:not(:first-of-type) {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        column-gap: 6px;
+    };
+    li.options:hover {
+        cursor: pointer;
+        background: linear-gradient(90deg, rgba(254,254,254,0.1) 10%, rgba(0,0,0,0.1) 48%, rgba(254,254,254,0.1) 90%);
+    };
+    img {
+        height: 45px;
+        border: none;
+    };
+}
 .age-system-dialog {
+    .window-content {
+        background-image: none;
+        background: rgba(254, 254, 254, 0.9);
+    }
+    ol, ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    };
     .age-importer {
         .min-height {
             flex: 0 0 auto;
@@ -376,6 +475,10 @@ body *:not(i, .fa, .far, .fas) {
         align-items: center;
     };
 
+    .flex-align-baseline {
+        align-items: baseline;
+    };
+
     .flex-align-end {
         align-items: flex-end;
     };
@@ -403,5 +506,6 @@ body *:not(i, .fa, .far, .fas) {
     .flex-justify-evenly {
         justify-content: space-evenly;
     };
+
 };
 /*---------------------------------*/

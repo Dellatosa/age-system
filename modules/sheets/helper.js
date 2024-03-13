@@ -13,6 +13,9 @@ export function newItemData(actor, itemData) {
         
         const itemType = item.type;
         const itemName = item.name;
+
+        // Warning about Class Item type not being ready yet for use - Remove when automation is completed
+        // if (itemType == "class") warning.push({index: i, warn: "'Class' Item type is still a work in progress and can not be added to Characters. Complete features are expected in a future release."})
     
         switch (actorType) {
             case "vehicle":
@@ -21,33 +24,38 @@ export function newItemData(actor, itemData) {
             case "spaceship":
                 if (itemType !== 'shipfeatures') {
                     warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.nonShipPartsOnShip")});
-                }
+                };
                 break;
             case "char":
                 if (itemType === 'shipfeatures') {
                     warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.shipPartsOnChar")});
-                }
+                };
                 if (itemType === 'focus') {
                     const focusItems = actor.items.filter(f => f.type === "focus");
                     const hasFocus = focusItems.filter(f => f.name.toLowerCase() === itemName.toLowerCase());
-                    if (item.isOrg) {
+                    if (item.system.isOrg) {
                         warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.orgFocusToChar")});
                     } else if (hasFocus.length > 0) {
                         warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.duplicatedFocus") + `"${itemName.toUpperCase()}"`});
                     }
+                };
+                if (itemType === 'class') {
+                    const ownedClasses = actor.items.filter(f => f.type === "class");
+                    const hasClass = ownedClasses ? ownedClasses.length : 0;
+                    if (hasClass > 0) warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.actorHasClass")});
                 }
                 break;
             case "organization":
                 if (itemType !== 'focus') {
                     warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.orgItem")});
-                } else if (!item.isOrg) {
+                } else if (!item.system.isOrg) {
                     warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.charFocusToOrg")});
                 } else {
                     const hasFocus = actor.items.filter(f => f.name.toLowerCase() === itemName.toLowerCase());
                     if (hasFocus.length > 0) {
                         warning.push({index: i, warn: game.i18n.localize("age-system.WARNING.duplicatedFocus") + `"${itemName.toUpperCase()}"`});
-                    }
-                }
+                    };
+                };
                 break;
             default:
                 break;

@@ -2,7 +2,6 @@
 import {ageSystem} from "./modules/config.js";
 import ageSystemSheetItem from "./modules/sheets/ageSystemSheetItem.js";
 import ageSystemSheetCharacter from "./modules/sheets/ageSystemSheetCharacter.js";
-import ageSystemSheetCharAlt from "./modules/sheets/ageSystemSheetCharAlt.js";
 import ageSystemSheetCharStatBlock from "./modules/sheets/ageSystemSheetCharStatBlock.js";
 import ageSystemSheetVehicle from "./modules/sheets/ageSystemSheetVehicle.js";
 import ageSystemSheetSpaceship from "./modules/sheets/ageSystemSheetSpaceship.js";
@@ -27,7 +26,9 @@ import {ExpanseStuntDice} from './modules/die.js';
 
 async function preloadHandlebarsTemplates() {
     const path = `systems/age-system/templates/partials/`;
+    const pathRedux = `systems/age-system/templates/`;
     const templatePaths = [
+        `${path}itemcontrols/class.hbs`,
         `${path}itemcontrols/equipment.hbs`,
         `${path}itemcontrols/honorifics.hbs`,
         `${path}itemcontrols/membership.hbs`,
@@ -38,37 +39,33 @@ async function preloadHandlebarsTemplates() {
         `${path}itemcontrols/weapon.hbs`,
         `${path}ability-focus-select.hbs`,
         `${path}active-bonuses.hbs`,
-        `${path}bonus-desc-sheet.hbs`,
         `${path}bonuses-sheet.hbs`,
-        `${path}char-sheet-alt-main.hbs`,
-        `${path}char-sheet-alt-persona.hbs`,
-        `${path}char-sheet-alt-stunts.hbs`,
-        `${path}char-sheet-alt-social.hbs`,
-        `${path}char-sheet-alt-equip.hbs`,
-        `${path}char-sheet-alt-talents.hbs`,
-        `${path}char-sheet-alt-powers.hbs`,
-        `${path}char-sheet-alt-effects.hbs`,
-        `${path}char-sheet-alt-options.hbs`,
-        `${path}char-sheet-nav-bar.hbs`,
-        `${path}char-sheet-tab-main.hbs`,
-        `${path}char-sheet-injury-bar.hbs`,
-        `${path}char-sheet-tab-persona.hbs`,
-        `${path}char-sheet-tab-effects.hbs`,
-        `${path}char-sheet-tab-options.hbs`,
-        `${path}char-stat-block-column1.hbs`,
-        `${path}conditions-block.hbs`,
         `${path}cost-resource-block.hbs`,
         `${path}dmg-block-sheet.hbs`,
         `${path}item-card-buttons.hbs`,
-        `${path}item-image-sheet-card.hbs`,
         `${path}item-options-sheet.hbs`,
-        `${path}play-aid-bar.hbs`,
+        `${path}weapon-group-block.hbs`,
+
+        `${pathRedux}sheets/char/adv.hbs`,
+        `${pathRedux}sheets/char/effects.hbs`,
+        `${pathRedux}sheets/char/equip.hbs`,
+        `${pathRedux}sheets/char/main.hbs`,
+        `${pathRedux}sheets/char/options.hbs`,
+        `${pathRedux}sheets/char/persona.hbs`,
+        `${pathRedux}sheets/char/powers.hbs`,
+        `${pathRedux}sheets/char/social.hbs`,
+        `${pathRedux}sheets/char/stunts.hbs`,
+        `${pathRedux}sheets/char/talents.hbs`,
+        
+        `${pathRedux}sheets/char-block/column1.hbs`,
+        `${pathRedux}sheets/char-block/injury-bar.hbs`,
+        `${pathRedux}sheets/char-block/play-aid-bar.hbs`,
     ];
 
     return loadTemplates(templatePaths);
 };
 
-Hooks.once("init", async function() {
+Hooks.once("init", function() {
     const ageSystemText = `
      ___   ____________   _____            __               
     /   | / ____/ ____/  / ___/__  _______/ /____  ____ ___ 
@@ -84,7 +81,7 @@ Hooks.once("init", async function() {
     game.ageSystem = {
         applications: {
             ageSystemSheetCharacter,
-            ageSystemSheetCharAlt,
+            // ageSystemSheetCharAlt,
             ageSystemSheetCharStatBlock,
             ageSystemSheetVehicle,
             ageSystemSheetSpaceship,
@@ -96,6 +93,7 @@ Hooks.once("init", async function() {
         dice: Dice,
         migrations: migrations,
         rollOwnedItem,
+        roll: Dice.ageRollCheck,
         // removeDoubledMods, // to be used in cases users has migration problems
         documents: {
             ageSystemActor,
@@ -109,11 +107,7 @@ Hooks.once("init", async function() {
 	CONFIG.Dice.terms["s"] = ExpanseStuntDice;
 
     Actors.unregisterSheet("core", ActorSheet);
-    // Actors.registerSheet("age-system", ageSystemSheetCharacter, {
-    //     types: ["char"],
-    //     label: "Legacy"
-    // });
-    Actors.registerSheet("age-system", ageSystemSheetCharAlt, {
+    Actors.registerSheet("age-system", ageSystemSheetCharacter, {
         types: ["char"],
         makeDefault: true,
         label: "age-system.SHEETS.charStandard"
@@ -159,7 +153,7 @@ Hooks.once("init", async function() {
     // Define extra data for Age System (Actors, Items, ActiveEffectConfig)
     CONFIG.Actor.documentClass = ageSystemActor;
     CONFIG.Item.documentClass = ageSystemItem;
-    CONFIG.Token.documentClass = ageTokenDocument;
+    // CONFIG.Token.documentClass = ageTokenDocument;
     CONFIG.ageSystem = ageSystem;
     // Saving this customization for a later implementation
     // CONFIG.Token.objectClass = ageToken;
@@ -169,7 +163,12 @@ Hooks.once("init", async function() {
     preloadHandlebarsTemplates();
 
     // Register System Settings
-    await Settings.registerSystemSettings();
+    Settings.registerSystemSettings();
+    
+    // Identify Ability set in use
+    const abilitySelection = game.settings.get("age-system", "abilitySelection");
+    const abilityOptions = ageSystem.abilitiesSettings;
+    ageSystem.abilities = abilityOptions[abilitySelection];
 
     // Register Settings
     ageSystem.stuntAttackPoints = game.settings.get("age-system", "stuntAttack");
@@ -197,6 +196,19 @@ Hooks.once("init", async function() {
             "EFFECT.MODE_OVERRIDE"
         ];
         return game.i18n.localize(modeNames[modeNumber]);
+    });
+
+    // Handlebar to set dice icon based on numeric value
+    Handlebars.registerHelper('facename', function(face) {
+        const faces = {
+            "1": "one",
+            "2": "two",
+            "3": "three",
+            "4": "four",
+            "5": "five",
+            "6": "six"
+        };
+        return faces[face];
     })
 
     // Handlebar to identify type of Effect
@@ -228,9 +240,9 @@ Hooks.once("init", async function() {
         return items.filter(p => p.type === "equipment" || p.type === "weapon")
     });
 
-    // Handlebar to itentify if Weapon Group is know
+    // Handlebar to itentify if Weapon Group is knowN
     Handlebars.registerHelper('haswgroup', function(wGroup, groupArray) {
-        if (!groupArray === []) return false;
+        if (!Array.isArray(groupArray)) return false;
         return groupArray.includes(wGroup) ? true : false;
     });
 
@@ -252,7 +264,13 @@ Hooks.once("init", async function() {
     Handlebars.registerHelper('tdegree', function(value) {
         value = Number(value);
         if (isNaN(value)) return ""
-        return ageSystem.talentDegrees[value];
+        return ageSystem.talentDegrees.inUse[value];
+    });
+
+    // Handlebar so show Level 1 to 20 using a Array with 20 positions
+    Handlebars.registerHelper("levelarr", function(value, options)
+    {
+        return parseInt(value) + 1;
     });
 
     // Handlebar helper to compare 2 data
@@ -277,22 +295,13 @@ Hooks.once("init", async function() {
     // Log core version
     ageSystem.coreVersion = game.world.coreVersion;
     ageSystem.systemVersion = game.world.systemVersion
-
-});
-
-Hooks.once("setup", function() {
-    const talentDegrees = foundry.utils.deepClone(ageSystem.mageDegrees);
-    for (let i = 0; i < talentDegrees.length; i++) {
-        talentDegrees[i] = game.i18n.localize(talentDegrees[i]);
-    }
-    ageSystem.talentDegrees = talentDegrees;
-    
-    // Set Health System configuration
+  
+    // Pre-definition of Health System setting
     const hstype = game.settings.get("age-system", "healthSys");
     const HEALTH_SYS = {
         type: hstype,
         mode: game.settings.get("age-system", "gameMode"),
-        healthName: game.i18n.localize(`SETTINGS.healthMode${game.settings.get("age-system", "healthMode")}`),
+        // healthName: game.i18n.localize(`SETTINGS.healthMode${game.settings.get("age-system", "healthMode")}`),
         useToughness: ![`basic`].includes(hstype),
         useFortune: [`expanse`].includes(hstype),
         useHealth: [`basic`, `mage`].includes(hstype),
@@ -301,12 +310,34 @@ Hooks.once("setup", function() {
         useBallistic: [`mage`, `mageInjury`, `mageVitality`].includes(hstype),
         baseDamageTN: 13
     };
-    CONFIG.ageSystem.damageSource = HEALTH_SYS.useBallistic ? CONFIG.ageSystem.damageSourceOpts.useBallistic : CONFIG.ageSystem.damageSourceOpts.noBallistic;
-    CONFIG.ageSystem.healthSys = HEALTH_SYS;
-    
+    ageSystem.damageSource = HEALTH_SYS.useBallistic ? CONFIG.ageSystem.damageSourceOpts.useBallistic : CONFIG.ageSystem.damageSourceOpts.noBallistic;
+    ageSystem.healthSys = HEALTH_SYS;
+
+});
+
+Hooks.once("setup", function() {
     // Specific Localization
+    Setup.localizePower();
     Setup.abilitiesName();
     Setup.localizeAgeEffects();
+    ageSystem.healthSys.healthName = game.i18n.localize(`SETTINGS.healthMode${game.settings.get("age-system", "healthMode")}`);
+
+    // Maximum Talent Degree definition
+    const degreeChoice = foundry.utils.deepClone(game.settings.get("age-system", "DegressChoice"));
+    const inUseDegrees = ageSystem.talentDegrees[degreeChoice];
+    for (let i = 0; i < inUseDegrees.length; i++) {
+        inUseDegrees[i] = game.i18n.localize(inUseDegrees[i]);
+    }
+    ageSystem.talentDegrees.inUse = inUseDegrees;
+
+    // Useful Array containing key of Actor Abilities
+    const ablKeys = [];
+    for (const k in CONFIG.ageSystem.abilities) {
+        if (Object.hasOwnProperty.call(CONFIG.ageSystem.abilities, k)) {
+            ablKeys.push(k)
+        }
+    }
+    CONFIG.ageSystem.ABILITY_KEYS = ablKeys;
 
     // Target/Controlled option to damage/heal
     CONFIG.ageSystem.useTargeted = game.settings.get("age-system", "useTargeted");
@@ -356,9 +387,12 @@ Hooks.once("ready", async function() {
     
     // Register System Settings related to Focus Compendium
     ageSystem.itemCompendia = Settings.allCompendia("Item");
+    const rollTables = Settings.allRollTables();
+    ageSystem.rollTables = { ...ageSystem.rollTables, ...rollTables };
+
     Settings.loadCompendiaSettings();
     const setCompendium = game.settings.get("age-system", "masterFocusCompendium");
-    ageSystem.focus = Settings.compendiumList(setCompendium);
+    ageSystem.focus = Settings.focusList(setCompendium);
 
     // Register Weapon Groups (if any)
     const userGroups = game.settings.get("age-system", "weaponGroups");
@@ -382,14 +416,13 @@ Hooks.once("ready", async function() {
             // names must be equal
             return 0;
         });
-
     }
     // Check if PDFoundry is active
     if (game.modules.get("pdfoundry")?.active) ageSystem.pdfoundryOn = true;
 
     // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
     Hooks.on("hotbarDrop", (bar, data, slot) => {
-        if (data === {}) return false;
+        if (typeof data !== 'object' || data == null) return false;
         const item = fromUuidSync(data.uuid);
         const itemType = item.type;
         const rollTypes = ['weapon', 'focus'];
@@ -402,21 +435,15 @@ Hooks.once("ready", async function() {
     // Determine whether a system migration is required and feasible
     if ( !game.user.isGM ) return;
     const currentVersion = game.settings.get("age-system", "systemMigrationVersion");
-    const NEEDS_MIGRATION_VERSION = "1.0.0";
+    const NEEDS_MIGRATION_VERSION = "2.0.2";
     const needsMigration = !currentVersion || isNewerVersion(NEEDS_MIGRATION_VERSION, currentVersion);
     if ( !needsMigration ) return;
     migrations.migrateWorld();
 });
 
-// If Compendia are updated, then compendiumList is gathered once again
-Hooks.on("renderCompendium", () => {
-    const setCompendium = game.settings.get("age-system", "masterFocusCompendium");
-    ageSystem.focus = Settings.compendiumList(setCompendium);
-});
 
 Hooks.on('chatMessage', (chatLog, content, userData) => AgeChat.ageCommand(chatLog, content, userData))
-Hooks.on("createCompendium", () => {ageSystem.itemCompendia = Settings.allCompendia("Item")})
-Hooks.on("renderageSystemItemSheet", (app, html, data) => {Setup.nameItemSheetWindow(app)});
+// Hooks.on("renderageSystemItemSheet", (app, html, data) => {Setup.nameItemSheetWindow(app)});
 Hooks.on("renderageSystemSheetCharacter", (app, html, data) => {Setup.hidePrimaryAblCheckbox(html)});
 Hooks.on("renderChatLog", (app, html, data) => {    AgeChat.addChatListeners(html)});
 Hooks.on("renderChatMessage", (app, html, data) => {AgeChat.sortCustomAgeChatCards(app, html, data)});
@@ -438,12 +465,478 @@ Hooks.once('diceSoNiceReady', () => {
             };
         };
     };
+
     // Register Stunt So Nice setting
     Settings.stuntSoNice(colorChoices, Object.keys(game.dice3d.box.dicefactory.systems));
+    
     // Identify if user has registered Dice so Nice Stunt Die option
     const stuntSoNiceFlag = game.user.getFlag("age-system", "stuntSoNice");
     if (stuntSoNiceFlag) game.settings.set("age-system", "stuntSoNice", stuntSoNiceFlag);
-    if (!stuntSoNiceFlag) game.user.setFlag("age-system", "stuntSoNice", game.settings.get("age-system", "stuntSoNice"));
+    else game.user.setFlag("age-system", "stuntSoNice", game.settings.get("age-system", "stuntSoNice"));
+});
+Hooks.on('renderSettingsConfig', (SettingsConfig, html, data) => {
+    Settings.updateFocusCompendia();
+    // Settings.updateCompTable(); // TODO - this function will be useful only when dynamic choices for System Settings is implemented
+});
+*/
+
+Hooks.on('renderSettingsConfig', (SettingsConfig, html, data) => {
+    Settings.updateFocusCompendia();
+    // Settings.updateCompTable(); // TODO - this function will be useful only when dynamic choices for System Settings is implemented
+});
+
+Hooks.once('diceSoNiceReady', (dice3d) => {
+
+    dice3d.addColorset({
+		name:'expRouge',
+		description:'The Expanse - Rouge',
+		category:'The Expanse',
+		foreground:'black',
+		background:'#BB3019',
+		outline:'#BB3019',
+		edge:'#BB3019',
+        //material:'glass',
+		texture:'none'
+	},"no");
+
+    dice3d.addColorset({
+		name:'expBlanc',
+		description:'The Expanse - Blanc',
+		category:'The Expanse',
+		foreground:'black',
+		background:'#FFFFFF',
+		outline:'#FFFFFF',
+		edge:'#FFFFFF',
+        //material:'glass',
+		texture:'none'
+	},"no");
+
+    dice3d.addColorset({
+		name:'expNoir',
+		description:'The Expanse - Noir',
+		category:'The Expanse',
+		foreground:'white',
+		background:'#000000',
+		outline:'#000000',
+		edge:'#000000',
+        //material:'glass',
+		texture:'none'
+
+	},"no");
+
+    dice3d.addColorset({
+		name:'expBleu',
+		description:'The Expanse - Bleu',
+		category:'The Expanse',
+		foreground:'white',
+		background:'#4071B7',
+		outline:'#4071B7',
+		edge:'#4071B7',
+        //material:'glass',
+		texture:'none'
+	},"no");
+
+    dice3d.addColorset({
+		name:'expCyan',
+		description:'The Expanse - Cyan',
+		category:'The Expanse',
+		foreground:'black',
+		background:'#57CBF5',
+		outline:'#57CBF5',
+		edge:'#57CBF5',
+        //material:'glass',
+		texture:'none'
+	},"no");
+
+    let prefix = "";
+    if(game.data.options.routePrefix) prefix = `/${game.data.options.routePrefix}`;
+    let expanseDiceType = game.settings.get("age-system", "ExpanseDices");
+    switch(expanseDiceType) {
+        case "TerreAE":
+            // Terre Blanc - Bleu
+            dice3d.addSystem({id:"terreAE",name:"Terre blanc - bleu"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-bump.png`
+                ],
+                colorset: "expBlanc",
+                system: "terreAE"
+            });
+
+	        dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-bump.png`
+                ],
+                colorset: "expBleu",
+                system: "terreAE"
+            });
+        break;
+        case "TerreEA":
+            // Terre Bleu - Blanc
+            dice3d.addSystem({id:"terreEA",name:"Terre bleu - blanc"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-bump.png`
+                ],
+                colorset: "expBlanc",
+                system: "terreEA"
+            });
+
+	        dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/earth/earth-6-bump.png`
+                ],
+                colorset: "expBleu",
+                system: "terreEA"
+            });
+        break;
+        case "MarsRN":
+            // Mars Rouge - Noir
+            dice3d.addSystem({id:"marsRN",name:"Mars rouge - noir"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-bump.png`
+                ],
+                colorset: "expRouge",
+                system: "marsRN"
+            });
+
+            dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-bump.png`
+                ],
+                colorset: "expNoir",
+                system: "marsRN"
+            });
+        break;
+        case "MarsNR":
+            // Mars Noir - Rouge
+            dice3d.addSystem({id:"marsNR",name:"Mars noir - rouge"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-bump.png`
+                ],
+                colorset: "expRouge",
+                system: "marsNR"
+            });
+
+            dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/mars/mars-6-bump.png`
+                ],
+                colorset: "expNoir",
+                system: "marsNR"
+            });
+            break;
+        case "CeintureBN":
+            // Ceinture Blanc - Noir
+            dice3d.addSystem({id:"ceintureBN",name:"Ceinture blanc - noir"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-bump.png`
+                ],
+                colorset: "expBlanc",
+                system: "ceintureBN"
+            });
+
+	        dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-bump.png`
+                ],
+                colorset: "expNoir",
+                system: "ceintureBN"
+            });
+        break;
+        case "CeintureNB":
+            // Ceinture Noir - Blanc
+            dice3d.addSystem({id:"ceintureNB",name:"Ceinture noir - blanc"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-bump.png`
+                ],
+                colorset: "expBlanc",
+                system: "ceintureNB"
+            });
+
+	        dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/belt/belt-6-bump.png`
+                ],
+                colorset: "expNoir",
+                system: "ceintureNB"
+            });
+        break;
+        case "ProtogenCN":
+            // Protogene Cyan - Noir
+            dice3d.addSystem({id:"protogenCN",name:"Protogène cyan - noir"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-bump.png`
+                ],
+                colorset: "expCyan",
+                system: "protogenCN"
+            });
+
+	        dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-bump.png`
+                ],
+                colorset: "expNoir",
+                system: "protogenCN"
+            });
+        break;
+        case "ProtogenNC":
+            // Ceinture Noir - Blanc
+            dice3d.addSystem({id:"protogenNC",name:"Protogène noir - cyan"},"preferred");
+
+            dice3d.addDicePreset({
+                type:"ds",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-light.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-light.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-bump.png`
+                ],
+                colorset: "expCyan",
+                system: "protogenNC"
+            });
+
+	        dice3d.addDicePreset({
+                type:"dn",
+                labels:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-dark.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-dark.png`
+                ],
+                bumpMaps:[
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-1-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-2-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-3-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-4-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-5-bump.png`,
+                    `${prefix}/systems/age-system/resources/imgs/expanse-dice/dice-so-nice/protogen/protogen-6-bump.png`
+                ],
+                colorset: "expNoir",
+                system: "protogenNC"
+            });
+        break;
+    }
 });
 */
 

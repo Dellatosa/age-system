@@ -7,7 +7,7 @@
                 <label>{{localize "age-system.talentDegree"}}</label>
                 <select name="system.degree">
                 {{#select system.degree}}
-                    {{#each config.talentDegrees as |degree|}}
+                    {{#each config.talentDegrees.inUse as |degree|}}
                     <option value="{{@key}}">{{degree}}</option>
                     {{/each}}
                 {{/select}}
@@ -19,7 +19,7 @@
                 <label>{{localize "age-system.type"}} </label>
                 <select name="system.type">
                 {{#select system.type}}
-                    <option value="talent">{{localize "ITEM.TypeTalent"}}</option>
+                    <option value="talent">{{localize "TYPES.Item.talent"}}</option>
                     <option value="spec">{{localize "age-system.item.spec"}}</option>
                 {{/select}}
                 </select>
@@ -56,50 +56,50 @@
 
             <section class="sheet-tab-section">
                 {{!-- Main Tab --}}
-                <div class="tab main" data-group="primary" data-tab="main">
+                <div class="tab main fill-space-height-100" data-group="primary" data-tab="main">
                     <div class="flexrow flex-gap">
-                        <ul class="resource colorset-first-tier item-box"><li>
-                            {{editor system.longDesc target="system.longDesc" button=true owner=owner editable=true}}
-                        </li></ul>
+                        <ul class="resource colorset-third-tier editor-parent">
+                            <li class="editor-parent no-value-class">{{editor system.longDesc target="system.longDesc" button=true owner=owner editable=true engine="prosemirror"}}</li>
+                        </ul>
 
-                        <ul class="resource colorset-first-tier item-group">
-                            <li class="title colorset-third-tier">
-                                <label>{{config.talentDegrees.[0]}}</label>
+                        <ul class="resource colorset-first-tier editor-parent">
+                            <li class="title">
+                                <label>{{config.talentDegrees.inUse.[0]}}</label>
                             </li>
-                            <li>{{editor system.degree0.desc target="system.degree0.desc" button=true owner=owner editable=true}}</li>
+                            <li class="editor-parent">{{editor system.degree0.desc target="system.degree0.desc" button=true owner=owner editable=true engine="prosemirror"}}</li>
                         </ul>
                     </div>
                     <div class="flexrow flex-gap">
-                        <ul class="resource colorset-first-tier item-group">
-                            <li class="title colorset-third-tier">
-                                <label>{{config.talentDegrees.[1]}}</label>
+                        <ul class="resource colorset-first-tier editor-parent">
+                            <li class="title">
+                                <label>{{config.talentDegrees.inUse.[1]}}</label>
                             </li>
-                            <li>{{editor system.degree1.desc target="system.degree1.desc" button=true owner=owner editable=true}}</li>
+                            <lili class="editor-parent">{{editor system.degree1.desc target="system.degree1.desc" button=true owner=owner editable=true engine="prosemirror"}}</li>
                         </ul>
 
-                        <ul class="resource colorset-first-tier item-group">
-                            <li class="title colorset-third-tier">
-                                <label>{{config.talentDegrees.[2]}}</label>
+                        <ul class="resource colorset-first-tier editor-parent">
+                            <li class="title">
+                                <label>{{config.talentDegrees.inUse.[2]}}</label>
                             </li>
-                            <li>{{editor system.degree2.desc target="system.degree2.desc" button=true owner=owner editable=true}}</li>
+                            <li class="editor-parent">{{editor system.degree2.desc target="system.degree2.desc" button=true owner=owner editable=true engine="prosemirror"}}</li>
                         </ul>
                     </div>
+		    {{#if expandedDegrees}}
                     <div class="flexrow flex-gap">
-                        <ul class="resource colorset-first-tier item-group">
-                            <li class="title colorset-third-tier">
-                                <label>{{config.talentDegrees.[3]}}</label>
+                        <ul class="resource colorset-first-tier editor-parent">
+                            <li class="title">
+                                <label>{{config.talentDegrees.inUse.[3]}}</label>
                             </li>
-                            <li>{{editor system.degree3.desc target="system.degree3.desc" button=true owner=owner editable=true}}</li>
+                            <li class="editor-parent">{{editor system.degree3.desc target="system.degree3.desc" button=true owner=owner editable=true engine="prosemirror"}}</li>
                         </ul>
-
-                        <ul class="resource colorset-first-tier item-group">
-                            <li class="title colorset-third-tier">
-                                <label>{{config.talentDegrees.[4]}}</label>
+                        <ul class="resource colorset-first-tier editor-parent">
+                            <li class="title">
+                                <label>{{config.talentDegrees.inUse.[4]}}</label>
                             </li>
-                            <li>{{editor system.degree4.desc target="system.degree4.desc" button=true owner=owner editable=true}}</li>
+                            <li class="editor-parent">{{editor system.degree4.desc target="system.degree4.desc" button=true owner=owner editable=true engine="prosemirror"}}</li>
                         </ul>
                     </div>
-
+		    {{/if}}
 
                 </div>
 

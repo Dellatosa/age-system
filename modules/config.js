@@ -1,9 +1,37 @@
 export const ageSystem = {
-    abilitiesSettings: {}
+    abilitiesSettings: {
+        // Ability set for "main" - core AGE System games
+        main: {
+            "acc": "age-system.acc",
+            "comm": "age-system.comm",
+            "cons": "age-system.cons",
+            "dex": "age-system.dex",
+            "fight": "age-system.fight",
+            "int": "age-system.int",
+            "per": "age-system.per",
+            "str": "age-system.str",
+            "will": "age-system.will",
+        },
+        // Ability set for "dage" - Dragon Age games
+        dage: {
+            "comm": "age-system.comm",
+            "cons": "age-system.cons",
+            "cunn": "age-system.cunn",
+            "dex": "age-system.dex",
+            "magic": "age-system.magic",
+            "per": "age-system.per",
+            "str": "age-system.str",
+            "will": "age-system.will",
+        }
+    }
 };
 
-// Ability set for "main" - core AGE System games
-ageSystem.abilitiesSettings.main = {
+// Level Constrains
+ageSystem.maxLevel = 20;
+ageSystem.minLevel = 0;
+
+// All possible Abilities
+ageSystem.abilitiesTotal = {
     "acc": "age-system.acc",
     "comm": "age-system.comm",
     "cons": "age-system.cons",
@@ -13,19 +41,10 @@ ageSystem.abilitiesSettings.main = {
     "per": "age-system.per",
     "str": "age-system.str",
     "will": "age-system.will",
-};
 
-// Ability set for "dage" - Dragon Age games
-ageSystem.abilitiesSettings.dage = {
-    "comm": "age-system.comm",
-    "cons": "age-system.cons",
     "cunn": "age-system.cunn",
-    "dex": "age-system.dex",
-    "magic": "age-system.magic",
-    "per": "age-system.per",
-    "str": "age-system.str",
-    "will": "age-system.will",
-};
+    "magic": "age-system.magic"    
+}
 
 // Organization Abilities
 ageSystem.abilitiesOrg = {
@@ -71,75 +90,6 @@ ageSystem.fatigueConditions = {
     exhausted: "age-system.exhausted",
     dying: "age-system.dying"
 };
-
-// Conditions
-ageSystem.conditions = [
-    {
-        name: "age-system.conditions.blinded",
-        desc: "age-system.conditions.blindedDesc",
-        id: "blinded"
-    },
-    {
-        name: "age-system.conditions.deafened",
-        desc: "age-system.conditions.deafenedDesc",
-        id: "deafened"
-    },
-    {
-        name: "age-system.conditions.exhausted",
-        desc: "age-system.conditions.exhaustedDesc",
-        id: "exhausted"
-    },
-    {
-        name: "age-system.conditions.fatigued",
-        desc: "age-system.conditions.fatiguedDesc",
-        id: "fatigued"
-    },
-    {
-        name: "age-system.conditions.freefalling",
-        desc: "age-system.conditions.freefallingDesc",
-        id: "freefalling"
-    },
-    {
-        name: "age-system.conditions.helpless",
-        desc: "age-system.conditions.helplessDesc",
-        id: "helpless"
-    },
-    {
-        name: "age-system.conditions.hindered",
-        desc: "age-system.conditions.hinderedDesc",
-        id: "hindered"
-    },
-    {
-        name: "age-system.conditions.prone",
-        desc: "age-system.conditions.proneDesc",
-        id: "prone"
-    },
-    {
-        name: "age-system.conditions.restrained",
-        desc: "age-system.conditions.restrainedDesc",
-        id: "restrained"
-    },
-    {
-        name: "age-system.conditions.injured",
-        desc: "age-system.conditions.injuredDesc",
-        id: "injured",
-    },
-    {
-        name: "age-system.conditions.wounded",
-        desc: "age-system.conditions.woundedDesc",
-        id: "wounded"
-    },
-    {
-        name: "age-system.conditions.unconscious",
-        desc: "age-system.conditions.unconsciousDesc",
-        id: "unconscious"
-    },
-    {
-        name: "age-system.conditions.dying",
-        desc: "age-system.conditions.dyingDesc",
-        id: "dying"
-    }
-];
 
 ageSystem.damageType = {
     stun: "age-system.stun",
@@ -235,7 +185,8 @@ ageSystem.itemIcons = {
     "membership": `${itemIconPath}backup.svg`,
     "weapon": `${itemIconPath}fist.svg`,
     "focus": `${itemIconPath}gift-of-knowledge.svg`,
-    "shipfeatures": `${itemIconPath}processor.svg`
+    "shipfeatures": `${itemIconPath}processor.svg`,
+    "class": `${itemIconPath}achievement.svg`
 };
 
 const actorIconPath = "systems/age-system/resources/imgs/actor-icon/";
@@ -247,9 +198,77 @@ ageSystem.actorIcons = {
 }
 
 const uiElementsPath = "systems/age-system/resources/imgs/ui-elements/";
-ageSystem.uiElements = {
-    ageRoller: `${uiElementsPath}cube.svg`
+
+// Advancement Data
+const advIconPath =  "systems/age-system/resources/imgs/adv-icon/";
+ageSystem.advData ={
+    stances: {
+        type: {
+            progressive: ['health', 'conviction', 'advAbility', 'powerPoints', 'defenseAndToughness'/*, 'toughness', 'defense'*/],
+            item: ['spec', 'stunts', 'talent', 'power', 'focus', 'relationship']
+        },
+        health: new Array(20).fill('1 + @cons'),
+        powerPoints: new Array(20).fill("0"),
+        conviction: [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+        advAbility: new Array(20).fill(1),
+        defenseAndToughness: [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+    },
+    abilityScoreCost: [1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3],
+    icon: {
+        // health: `${advIconPath}heart-key.svg`,
+        // ability: `${advIconPath}orb-direction.svg`,
+        item: `${advIconPath}family-tree.svg`,
+        progressive: `${advIconPath}progression.svg`,
+    }
+
 }
+
+/**
+ * Constains path of deverived data, which Active Effects shall be applied after DerivedaData method
+ */
+ageSystem.actorDerivedDataKey = [
+    'system.armor.penaly',
+    'system.armor.strain',
+    'system.dmgMod',
+    'system.testMod',
+    'system.attackMod',
+    // 'system.defense.mod',
+    'system.defense.total',
+    'system.armor.impact',
+    'system.armor.ballistic',
+    // 'system.armor.toughness.mod',
+    'system.armor.toughness.total',
+    // 'system.speed.mod',
+    'system.speed.total',
+    'system.defend.mod',
+    'system.guardUp.mod',
+    'system.allOutAttack.mod',
+    'system.allOutAttack.dmgBonus',
+    // 'system.health.mod',
+    'system.health.max',
+    // 'system.conviction.mod',
+    'system.conviction.max',
+    // 'system.powerPoints.mod',
+    'system.powerPoints.max',
+    'system.aim.mod',
+    'system.initiative',
+    'system.resources.total',
+];
+
+// Ability paths
+ageSystem.charAblKey = [
+    'system.abilities.acc.total',
+    'system.abilities.comm.total',
+    'system.abilities.cons.total',
+    'system.abilities.cunn.total',
+    'system.abilities.dex.total',
+    'system.abilities.fight.total',
+    'system.abilities.int.total',
+    'system.abilities.magic.total',
+    'system.abilities.per.total',
+    'system.abilities.str.total',
+    'system.abilities.will.total',
+];
 
 const AGEstatusEffectsPath = "systems/age-system/resources/imgs/effects/";
 ageSystem.statusEffectsPath = AGEstatusEffectsPath;
@@ -259,66 +278,80 @@ ageSystem.statusEffects = {
     {
         icon: `${AGEstatusEffectsPath}number.svg`,
         id: `num0`,
-        label: `0`,
+        name: `0`,
     },
     {
         icon: `${AGEstatusEffectsPath}number-1.svg`,
         id: `num1`,
-        label: `1`,
+        name: `1`,
     },
     {
         icon: `${AGEstatusEffectsPath}number-2.svg`,
         id: `num2`,
-        label: `2`,
+        name: `2`,
     },
     {
         icon: `${AGEstatusEffectsPath}number-3.svg`,
         id: `num3`,
-        label: `3`
+        name: `3`
     },
     {
         icon: `${AGEstatusEffectsPath}number-4.svg`,
         id: `num4`,
-        label: `4`
+        name: `4`
     },
     {
         icon: `${AGEstatusEffectsPath}number-5.svg`,
         id: `num5`,
-        label: `5`
+        name: `5`
     },
     {
         icon: `${AGEstatusEffectsPath}number-6.svg`,
         id: `num6`,
-        label: `6`
+        name: `6`
     },
     {
         icon: `${AGEstatusEffectsPath}number-7.svg`,
         id: `num7`,
-        label: `7`
+        name: `7`
     },
     {
         icon: `${AGEstatusEffectsPath}number-8.svg`,
         id: `num8`,
-        label: `8`
+        name: `8`
     },
     {
         icon: `${AGEstatusEffectsPath}number-9.svg`,
         id: `num9`,
-        label: `9`
+        name: `9`
     },
     {
         icon: `${AGEstatusEffectsPath}number-10.svg`,
         id: `num10`,
-        label: `10`
+        name: `10`
     },
     {
         icon: `${AGEstatusEffectsPath}pirate-grave.svg`,
         id: `dead`,
-        label: `EFFECT.StatusDead`,
+        name: `EFFECT.StatusDead`,
     },
+    // // teste
+    // {
+    //     name: "invisivel",
+    //     id: "invisible",
+    //     icon: "icons/svg/invisible.svg",
+    //     flags: {
+    //         "age-system": {
+    //             isCondition: true,
+    //             conditionType: "expanse",
+    //             desc: "age-system.conditions.invisibleDesc"
+    //         }
+    //     }
+    // },
+    // // fim de teste
     {
-        label: "age-system.conditions.blinded",
-        id: "blinded",
+        name: "age-system.conditions.blinded",
+        id: "blind", //original é o 'blinded'
         icon: "icons/svg/blind.svg",
         flags: {
             "age-system": {
@@ -329,8 +362,8 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.deafened",
-        id: "deafened",
+        name: "age-system.conditions.deafened",
+        id: "deaf",
         icon: "icons/svg/deaf.svg",
         flags: {
             "age-system": {
@@ -341,7 +374,7 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.dying",
+        name: "age-system.conditions.dying",
         id: "dying",
         icon: `${AGEstatusEffectsPath}half-dead.svg`,
         flags: {
@@ -353,7 +386,7 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.fatigued",
+        name: "age-system.conditions.fatigued",
         id: "fatigued",
         icon: `${AGEstatusEffectsPath}despair.svg`,
         flags: {
@@ -365,7 +398,7 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.exhausted",
+        name: "age-system.conditions.exhausted",
         id: "exhausted",
         icon: `${AGEstatusEffectsPath}oppression.svg`,
         flags: {
@@ -382,7 +415,7 @@ ageSystem.statusEffects = {
         }]
     },
     {
-        label: "age-system.conditions.freefalling",
+        name: "age-system.conditions.freefalling",
         id: "freefalling",
         icon: `${AGEstatusEffectsPath}acrobatic.svg`,
         flags: {
@@ -394,7 +427,7 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.helpless",
+        name: "age-system.conditions.helpless",
         id: "helpless",
         icon: `${AGEstatusEffectsPath}knockout.svg`,
         flags: {
@@ -406,7 +439,7 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.hindered",
+        name: "age-system.conditions.hindered",
         id: "hindered",
         icon: `${AGEstatusEffectsPath}knee-bandage.svg`,
         flags: {
@@ -423,7 +456,7 @@ ageSystem.statusEffects = {
         }]
     },
     {
-        label: "age-system.conditions.injured",
+        name: "age-system.conditions.injured",
         id: "injured",
         icon: `${AGEstatusEffectsPath}backstab.svg`,
         flags: {
@@ -440,7 +473,7 @@ ageSystem.statusEffects = {
         }]
     },
     {
-        label: "age-system.conditions.wounded",
+        name: "age-system.conditions.wounded",
         id: "wounded",
         icon: `${AGEstatusEffectsPath}arrowed.svg`,
         flags: {
@@ -462,7 +495,7 @@ ageSystem.statusEffects = {
         }]
     },
     {
-        label: "age-system.conditions.prone",
+        name: "age-system.conditions.prone",
         id: "prone",
         icon: "icons/svg/falling.svg",
         flags: {
@@ -474,7 +507,7 @@ ageSystem.statusEffects = {
         }
     },
     {
-        label: "age-system.conditions.restrained",
+        name: "age-system.conditions.restrained",
         id: "restrained",
         icon: `${AGEstatusEffectsPath}imprisoned.svg`,
         flags: {
@@ -491,7 +524,7 @@ ageSystem.statusEffects = {
         }]
     },
     {
-        label: "age-system.conditions.unconscious",
+        name: "age-system.conditions.unconscious",
         id: "unconscious",
         icon: "icons/svg/unconscious.svg",
         flags: {
@@ -510,132 +543,132 @@ ageSystem.statusEffects = {
     // Below this line are Foundry Core token conditions
     {
         id: "sleep",
-        label: "EFFECT.StatusAsleep",
+        name: "EFFECT.StatusAsleep",
         icon: "icons/svg/sleep.svg",
     },
     {
         id: "fly",
-        label: "EFFECT.StatusFlying",
+        name: "EFFECT.StatusFlying",
         icon: "icons/svg/wing.svg"
     },
     {
         id: "stun",
-        label: "EFFECT.StatusStunned",
+        name: "EFFECT.StatusStunned",
         icon: "icons/svg/daze.svg"
     },
     {
         id: "paralysis",
-        label: "EFFECT.StatusParalysis",
+        name: "EFFECT.StatusParalysis",
         icon: "icons/svg/paralysis.svg"
     },
     {
         id: "silence",
-        label: "EFFECT.StatusSilenced",
+        name: "EFFECT.StatusSilenced",
         icon: "icons/svg/silenced.svg"
     },
     {
         id: "fear",
-        label: "EFFECT.StatusFear",
+        name: "EFFECT.StatusFear",
         icon: "icons/svg/terror.svg"
     },
     {
         id: "burning",
-        label: "EFFECT.StatusBurning",
+        name: "EFFECT.StatusBurning",
         icon: "icons/svg/fire.svg"
     },
     {
         id: "frozen",
-        label: "EFFECT.StatusFrozen",
+        name: "EFFECT.StatusFrozen",
         icon: "icons/svg/frozen.svg"
     },
     {
         id: "shock",
-        label: "EFFECT.StatusShocked",
+        name: "EFFECT.StatusShocked",
         icon: "icons/svg/lightning.svg"
     },
     {
         id: "corrode",
-        label: "EFFECT.StatusCorrode",
+        name: "EFFECT.StatusCorrode",
         icon: "icons/svg/acid.svg"
     },
     {
         id: "bleeding",
-        label: "EFFECT.StatusBleeding",
+        name: "EFFECT.StatusBleeding",
         icon: "icons/svg/blood.svg"
     },
     {
         id: "disease",
-        label: "EFFECT.StatusDisease",
+        name: "EFFECT.StatusDisease",
         icon: "icons/svg/biohazard.svg"
     },
     {
         id: "poison",
-        label: "EFFECT.StatusPoison",
+        name: "EFFECT.StatusPoison",
         icon: "icons/svg/poison.svg"
     },
     {
         id: "radiation",
-        label: "EFFECT.StatusRadiation",
+        name: "EFFECT.StatusRadiation",
         icon: "icons/svg/radiation.svg"
     },
     {
         id: "regen",
-        label: "EFFECT.StatusRegen",
+        name: "EFFECT.StatusRegen",
         icon: "icons/svg/regen.svg"
     },
     {
         id: "degen",
-        label: "EFFECT.StatusDegen",
+        name: "EFFECT.StatusDegen",
         icon: "icons/svg/degen.svg"
     },
     {
         id: "upgrade",
-        label: "EFFECT.StatusUpgrade",
+        name: "EFFECT.StatusUpgrade",
         icon: "icons/svg/upgrade.svg"
     },
     {
         id: "downgrade",
-        label: "EFFECT.StatusDowngrade",
+        name: "EFFECT.StatusDowngrade",
         icon: "icons/svg/downgrade.svg"
     },
     {
         id: "target",
-        label: "EFFECT.StatusTarget",
+        name: "EFFECT.StatusTarget",
         icon: "icons/svg/target.svg"
     },
     {
         id: "eye",
-        label: "EFFECT.StatusMarked",
+        name: "EFFECT.StatusMarked",
         icon: "icons/svg/eye.svg"
     },
     {
         id: "curse",
-        label: "EFFECT.StatusCursed",
+        name: "EFFECT.StatusCursed",
         icon: "icons/svg/sun.svg"
     },
     {
         id: "bless",
-        label: "EFFECT.StatusBlessed",
+        name: "EFFECT.StatusBlessed",
         icon: "icons/svg/angel.svg"
     },
     {
         id: "fireShield",
-        label: "EFFECT.StatusFireShield",
+        name: "EFFECT.StatusFireShield",
         icon: "icons/svg/fire-shield.svg"
     },
     {
         id: "coldShield",
-        label: "EFFECT.StatusIceShield",
+        name: "EFFECT.StatusIceShield",
         icon: "icons/svg/ice-shield.svg"
     },
     {
         id: "magicShield",
-        label: "EFFECT.StatusMagicShield",
+        name: "EFFECT.StatusMagicShield",
         icon: "icons/svg/mage-shield.svg"
     },
     {
         id: "holyShield",
-        label: "EFFECT.StatusHolyShield",
+        name: "EFFECT.StatusHolyShield",
         icon: "icons/svg/holy-shield.svg"
     },
 ]};
@@ -718,13 +751,17 @@ ageSystem.modkeys = {
 
 // Age Tracker & Roller Initial Positions
 ageSystem.ageTrackerPos = {xPos: "260px", yPos: "69px"};
-ageSystem.ageRollerPos = {xPos: "800px", yPos: "10px"};
+ageSystem.ageRollerPos = {xPos: "836px", yPos: "10px"};
 
 // Initializing variable to load focus Compendiaum
 ageSystem.focus = [];
 
 // List with world's Item compendia
 ageSystem.itemCompendia = [];
+
+// Object map with world's RollTables
+ageSystem.complicationRollTable = "none";
+ageSystem.rollTables = [];
 
 // Roll Types definition
 ageSystem.ROLL_TYPE = {
@@ -805,8 +842,13 @@ ageSystem.greenRonin = {
 }
 
 // Talent Degrees
-ageSystem.mageDegrees = ['age-system.novice', 'age-system.expert', 'age-system.master', 'age-system.grandmaster', 'age-system.apex'];
-ageSystem.fageDegrees = ['age-system.novice', 'age-system.journeyman', 'age-system.master', 'age-system.grandmaster', 'age-system.apex'];
+ageSystem.talentDegrees = {
+    mage: ['age-system.novice', 'age-system.expert', 'age-system.master'],
+    fage: ['age-system.novice', 'age-system.journeyman', 'age-system.master'],
+    mageExtra: ['age-system.novice', 'age-system.expert', 'age-system.master', 'age-system.grandmaster', 'age-system.apex'],
+    fageExtra: ['age-system.novice', 'age-system.journeyman', 'age-system.master', 'age-system.grandmaster', 'age-system.apex'],
+};
+
 
 // Game Settings
 ageSystem.gameSettingsChoices = {
@@ -826,12 +868,14 @@ ageSystem.advSettings = [
     'primaryAbl',
     'occupation',
     'ancestryOpt',
+    'DegressChoice',
     'wealthType',
     'stuntAttack',
     'usePowerPoints',
     'useFatigue',
     'useConviction',
     'complication',
+    'complicationRollTable',
     'serendipity',
     'weaponGroups',
 ]
@@ -856,7 +900,8 @@ ageSystem.gameSettings = {
                 useConviction: false,
                 usePowerPoints: true,
                 complication: 'none',
-                serendipity: false
+                serendipity: false,
+                powerFlavor: 'mana'
             },
             user: ['weaponGroups']
         }
@@ -873,14 +918,16 @@ ageSystem.gameSettings = {
                 healthMode: 'health',
                 abilitySelection: 'main',
                 primaryAbl: true,
-                gameMode: false,
+                gameMode: 'none',
                 wealthType: 'coins',
                 occupation: 'class',
                 ancestryOpt: 'race',
                 useConviction: false,
                 usePowerPoints: true,
                 complication: 'none',
-                serendipity: false
+                complicationRollTable: 'none',
+                serendipity: false,
+                powerFlavor: 'spell'
             },
             user: ['weaponGroups']
         }
@@ -897,14 +944,15 @@ ageSystem.gameSettings = {
                 healthMode: 'fortune',
                 abilitySelection: 'main',
                 primaryAbl: false,
-                gameMode: false,
+                gameMode: 'none',
                 weaponGroups: "",
                 wealthType: 'income',
                 occupation: 'profession',
                 ancestryOpt: 'origin',
                 useConviction: false,
                 usePowerPoints: false,
-                complication: 'chrun',
+                complication: 'churn',
+                complicationRollTable: 'none',
                 serendipity: false
             }
         }
@@ -926,10 +974,11 @@ ageSystem.gameSettings = {
                 occupation: 'profession',
                 ancestryOpt: 'ancestry',
                 complication: 'none',
+                complicationRollTable: 'none',
                 serendipity: false,
                 stuntAttack: 2
             },
-            user: ['gameMode', 'useConviction', 'usePowerPoints']
+            user: ['gameMode', 'useConviction', 'usePowerPoints', 'powerFlavor']
         }
     },
     brose: {
@@ -944,13 +993,14 @@ ageSystem.gameSettings = {
                 healthMode: 'health',
                 abilitySelection: 'main',
                 primaryAbl: true,
-                gameMode: false,
+                gameMode: 'none',
                 wealthType: 'coins',
                 occupation: 'class',
                 ancestryOpt: 'race',
                 useConviction: true,
                 usePowerPoints: false,
                 complication: 'none',
+                complicationRollTable: 'none',
                 serendipity: false
             },
             user: ['weaponGroups']

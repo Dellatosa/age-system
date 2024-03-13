@@ -3,10 +3,12 @@ import { ageRollCheck } from "./dice.js";
 import ConditionsWorkshop from "./conditions-workshop.js";
 import { applyBreather } from "./breather.js";
 import AgeImporter from "./age-importer.js";
+import r20importer from "./r20importer.js";
 
 export class AgeRoller extends Application {
 	constructor(options = {}) {
 		super(options)
+		this._r20data = null;
 	}
 
 	get template() {
@@ -28,18 +30,17 @@ export class AgeRoller extends Application {
 	activateListeners(html) {
 		super.activateListeners(html);
 		html.find('li').hover(t => t.currentTarget.classList.toggle('colorset-third-tier'));
-		html.find("#age-roller img").click(this._onClick.bind(this));
-		html.find("#age-roller img").contextmenu(this._onRightClick.bind(this));
+		html.find("#age-roller i").click(this._onClick.bind(this));
+		html.find("#age-roller i").contextmenu(this._onRightClick.bind(this));
 		html.find("#age-roller-drag").contextmenu(this._onResetPosition.bind(this));
-		html.find("#age-roller-drag").mousedown(this._onHideOptions.bind(this));
-		html.find("#age-roller-container").mouseleave(this._onHideOptions.bind(this));
-		html.find("#age-roller-container").mouseenter(this._onShowOptions.bind(this));
-		html.find("#age-roller").hover(this._onShowOptions.bind(this));
 		html.find(".conditions-workshop").click(this.openConditionWorkshop.bind(this));
 		html.find(".age-importer").click(this.openAgeImporter.bind(this));
+		html.find(".r20-importer").click(this.startR20Importer.bind(this));
 		html.find(".breather-tokens").click(this.tokenBreather);
 		html.find('.roll').click(this._onSpecialRoll.bind(this));
 		html.find('.roll').contextmenu(this._onSpecialRoll.bind(this));
+		html.find("#age-roller-container").hover(this._onToggleOptions.bind(this));
+		html.find('#age-roller-options').click(this._onToggleOptions.bind(this));
 
 		// Set position
 		let roller = document.getElementById("age-roller");
@@ -77,14 +78,68 @@ export class AgeRoller extends Application {
 		return new AgeImporter().render(true);
 	}
 
-	_onHideOptions(ev) {
-		const opt = document.getElementById("age-roller-options");
-		opt.style.display = 'none';
+	startR20Importer(ev) {
+		return this._onReadFromFile();
 	}
 
-	_onShowOptions(ev) {
+	async _onReadFromFile() {
+		new Dialog({
+			title: `AGE R20 Import`,
+			content: await renderTemplate("templates/apps/import-data.html", {
+				hint1: game.i18n.format("DOCUMENT.ImportDataHint1", {document: "R20 Importer"})
+			}),
+			buttons: {
+				import: {
+					icon: '<i class="fas fa-file-import"></i>',
+					label: game.i18n.format("age-system.import"),
+					callback: html => {
+						const form = html.find("form")[0];
+						if ( !form.data.files.length ) return ui.notifications.error("You did not upload a data file!");
+						readTextFromFile(form.data.files[0]).then(json => this.importFromJSON(json));
+					}
+				},
+				no: {
+					icon: '<i class="fas fa-times"></i>',
+					label: game.i18n.format("age-system.cancel"),
+				}
+			},
+			default: "import"
+		}, {
+			width: 400
+		}).render(true);
+	};
+
+	/**
+	 * Read a JSON from a file with R20 Importer data, validate and save it.
+	 * @param {string} json Stringfied JSON object
+	 */
+	importFromJSON(json){
+		let data;
+		try {
+			data = JSON.parse(json);
+		}
+		catch(err) {
+			console.log(err.message)
+			return ui.notifications.warn(game.i18n.localize("age-system.invalidFileContent"));
+		}
+		new r20importer(data);
+	}
+	
+	_onToggleOptions(ev) {
+		ev.preventDefault();
 		const opt = document.getElementById("age-roller-options");
-		opt.style.display = 'inline-block';
+		const view = opt.style.display;
+		switch (view) {
+			case '':
+			case 'none':
+				opt.style.display = 'inline-block';
+				break;
+			case 'inline-block':
+				opt.style.display = 'none';
+				break;
+			default:
+				break;
+		}
 	}
 
  	async _onClick(event) {

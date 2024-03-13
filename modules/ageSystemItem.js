@@ -1,3 +1,4 @@
+import { AdvancementSetup, AgeLevel, AgeProgUI } from "./advancement.js";
 import {ageSystem} from "./config.js";
 import * as Dice from "./dice.js";
 
@@ -23,17 +24,34 @@ export class ageSystemItem extends Item {
         if (this.type === "power" && this.system.useFatigue) {return game.settings.get("age-system", "useFatigue")};
         return false;
     };
+
+    /** @override */
+    async _preCreate(data, options, userId) {
+        await super._preCreate(data, options, userId);
+        const updates = {};
+        if (!data.img || data.img === `icons/svg/item-bag.svg`) updates.img = ageSystem.itemIcons[this.type];
+        switch (data.type) {
+            case "class":
+                this._preCreateClass(data, options, userId, updates);
+                break;
+        
+            default:
+                break;
+        }
+        this.updateSource(updates);
+    }
+
+    // Ensure all new Class items created are reset to Level 0
+    _preCreateClass(data, options, userId, updates) {
+        updates["system.level"] = 0;
+    }
     
     /** @override */
     prepareBaseData() {
-        if (this.img === "icons/svg/item-bag.svg") {
-            if (!ageSystem.itemIcons[this.type]) this.img = "icons/svg/item-bag.svg";
-            this.img = ageSystem.itemIcons[this.type];
-        };
-        if (!this.name) this.name = "New " + game.i18n.localize(this.type);
         const itemData = this;
         const data = itemData.system;
         const itemType = itemData.type;
+
         data.colorScheme = `colorset-${game.settings.get("age-system", "colorScheme")}`;
         data.nameLowerCase = itemData.name.toLowerCase();
 
@@ -81,14 +99,55 @@ export class ageSystemItem extends Item {
         }
 
         switch (itemType) {
-            case "focus": this._prepareFocus(data);
-                break;
-            case "power": this._preparePower(data);
-                break;
-            case "shipfeatures": this._prepareShipFeatures(data);
-                break;
+            case "focus": this._prepareFocus(data); break;
+            case "power": this._preparePower(data); break;
+            case "shipfeatures": this._prepareShipFeatures(data); break;
+            case "class": this._prepareClass(data); break;
         }
     };
+
+    _prepareClass(system) {
+        const advPerLvl = new Array(20).fill(null);
+        system.advArrIndex = system.level - 1;
+        
+        // Add all Progressive Advancements
+        const progAdv = system.advancements.progressive;
+        for (let p = 0; p < progAdv.length; p++) {
+            const a = progAdv[p]
+            const adv = a.adv;
+            for (let i = 0; i < adv.length; i++) {
+                const e = adv[i];
+                if (!["", 0, "0"].includes(e)) {
+                    if (!advPerLvl[i]) advPerLvl[i] = [];
+                    advPerLvl[i].push({
+                        type: 'progressive',
+                        id: p,
+                        level: p,
+                        trait: a.trait,
+                        value: e,
+                        img: a.img,
+                        alias: a.alias
+                    })
+                }
+            }
+        }
+
+        // Add all Item Advancements
+        const progItem = system.advancements.item;
+        for (let id = 0; id < progItem.length; id++) {
+            const it = progItem[id];
+            const l = it.level -1
+            if (!advPerLvl[l]) advPerLvl[l] = [];
+            advPerLvl[l].push({
+                type: "item",
+                id: id,
+                alias: it.alias,
+                img: it.img
+            })
+        }
+
+        system.advPerLvl = advPerLvl;
+    }
 
     prepareDamageData(data) {
         // Evaluate Attack and Damage formula to represent on Item sheet or stat block
@@ -98,6 +157,7 @@ export class ageSystemItem extends Item {
             const mode = game.settings.get("age-system", "healthSys");
             const useInjury = [`mageInjury`, `mageVitality`].includes(mode);
 
+            // ATTACK BUILDER
             // Attack Mod - Actor Scope
             const atkBonuses = [];
             if (useFocus) atkBonuses.push(useFocus.value);
@@ -145,6 +205,7 @@ export class ageSystemItem extends Item {
             const attkPartials = Dice.resumeFormula(atkBonus, this.actor?.actorRollData() ?? {});
             data.atkRollMod = attkPartials ? attkPartials.shortFormula : "+0";
 
+            // DAMAGE BUILDER
             // Item Base Damage
             const dmgBonusArr = []
             let baseDamage = 0;
@@ -310,6 +371,17 @@ export class ageSystemItem extends Item {
 
     _prepareShipFeatures(data) {};
 
+    // Code to for opening the correct sheet - used when opening Owned Items from char sheet (this can be removed when bug is clearly identified and fixed)
+    async openSheet() {
+        const ageSheet = 'age-system.ageSystemSheetItem'
+        const sheet = this.sheet
+        await sheet.close()
+        this._sheet = null
+        delete this.apps[sheet.appId]
+        await this.setFlag('core', 'sheetClass', ageSheet)
+        this.sheet.render(true)
+    }
+
     /**
      * Adds a new object inside Modifiers object
      * @param {Object} object.type Modifier type
@@ -345,6 +417,90 @@ export class ageSystemItem extends Item {
         return this.update({[path]: newMod});
     }
 
+    _onChangeAdvancement(data, action) {
+        const type = data.type;
+        const id = data.id;
+        const level = data.level;
+        if (!['item', 'progressive'].includes(type)) return false
+        const prog = foundry.utils.deepClone(this.system.advancements[type]);
+
+        // Code to remove Advancement
+        if (action === "remove") {
+            switch (type) {
+                case "item": prog.splice(id, 1);
+                    break;
+                case "progressive": prog.splice(id, 1);
+                    break;
+                default:
+                    break;
+            }
+            const path = `system.advancements.${type}`;
+            this.update({[path]: prog});
+        };
+
+        // Code to edit Advancement
+        if (action === "edit") {
+            const advData = prog[id];
+            const options = {
+                data: advData,
+                index: {
+                    level: level,
+                    id: id
+                }
+            }
+            new AdvancementSetup(this.uuid, type, options).render(true);
+        }
+    }
+
+    _levelChange(action) {
+        if (!['class'].includes(this.type)) return null;
+        if (!this.isOwned) return ui.notifications.warn(game.i18n.localize("age-system.WARNING.ownedClassLevElOnly"));
+        const curLevel = this.system.level;
+        const maxLevel = ageSystem.maxLevel;
+        const minLevel = ageSystem.minLevel;
+        switch (action) {
+            case 'add':
+                if (curLevel == maxLevel) return ui.notifications.warn("Already at maximum level")
+                this._levelUp();
+                // this.update({"system.level": curLevel+1})
+                break;
+            case 'remove':
+                if (curLevel == minLevel) return ui.notifications.warn("Already at minimum level")
+                // this.update({"system.level": curLevel-1})
+                this._levelDown(curLevel - 1);
+                break;
+            default:
+                break;
+        }
+    }
+
+    _levelUp() {
+        if (this.type != "class" || !this.isOwned) return null;
+        /**
+         * Indicar ganho de Melhorias na seguinte ordem:
+         * - Habilidades
+         * - Saúde/Destino
+         * - Power Points
+         * - Defesa/Resistência
+         * - Foco
+         * - Talento
+         * - Especialização
+         * - Poder
+         * - Façanhas
+         */
+        const classItem = this;
+        const actor = this.actor;
+        const updates = {};
+        const nextLevel = this.system.level+1;
+        const improvements = foundry.utils.deepClone(this.system.advPerLvl[nextLevel-1]); // To account to Array start counting at 0
+
+    }
+
+    _levelDown() {
+        this.update({"system.level": this.system.level-1})
+    }
+
+    // Assists to identify if the value of a Modifier has valid data according to Modifier's Formula Type (ftype)
     evalMod(m) {
         if (m.type === "") return m
         m.ftype = ageSystem.modkeys[m.type].dtype;
@@ -474,29 +630,37 @@ export class ageSystemItem extends Item {
             if (!this.hasFatigue && actor) {
                 const cost = itemData.powerPointCostTotal;
                 const remainingPP = actorData?.powerPoints.value;
-                if (cost > remainingPP) {
-                    const castAnyway = await new Promise(resolve => {
-                        const data = {
-                            content: `<p>${game.i18n.format("age-system.rollWithoutPP", {name: actor.name, item: this.name})}</p>`,
-                            buttons: {
-                                normal: {
-                                    label: game.i18n.localize("age-system.roll"),
-                                    callback: html => resolve({roll: true})
-                                },
-                                cancel: {
-                                    label: game.i18n.localize("age-system.cancel"),
-                                    callback: html => resolve({roll: false}),
-                                }
-                            },
-                            default: "normal",
-                            close: () => resolve({cancelled: true}),
-                        }
-                        new Dialog(data, null).render(true);
-                    });
-                    if (!castAnyway.roll) return false;
-                } else {
-                    actor.update({"system.powerPoints.value": remainingPP - cost}, {value: -cost, type: 'power'})
+                rollData.ppCost = {
+                    remainingPP,
+                    cost,
                 }
+                // if (cost > remainingPP) {
+                //     const castAnyway = await new Promise(resolve => {
+                //         const data = {
+                //             content: `<p>${game.i18n.format("age-system.rollWithoutPP", {name: actor.name, item: this.name})}</p>`,
+                //             buttons: {
+                //                 normal: {
+                //                     label: game.i18n.localize("age-system.roll"),
+                //                     callback: html => resolve({roll: true})
+                //                 },
+                //                 cancel: {
+                //                     label: game.i18n.localize("age-system.cancel"),
+                //                     callback: html => resolve({roll: false}),
+                //                 }
+                //             },
+                //             default: "normal",
+                //             close: () => resolve({cancelled: true}),
+                //         }
+                //         new Dialog(data, null).render(true);
+                //     });
+                //     if (!castAnyway.roll) return false;
+                // } else {
+                //     rollData.ppCost = {
+                //         remainingPP,
+                //         cost,
+                //     }
+                //     // actor.update({"system.powerPoints.value": remainingPP - cost}, {value: -cost, type: 'power'})
+                // }
             }
         }
 
@@ -519,7 +683,6 @@ export class ageSystemItem extends Item {
     };
 
     async showItem(forceSelfRoll = false) {
-        // return ui.notifications.warn("Show item cards on chat is currently unavailable. Await until next version"); // Remove when chat cards are working again
         const item = this;
         const itemData = this.system;
         const rollMode = game.settings.get("core", "rollMode");       
@@ -531,10 +694,11 @@ export class ageSystemItem extends Item {
             itemId: item.id,
             owner: this.actor,
             ownerUuid: this.actor.uuid,
-            config: {
-                colorScheme: ageSystem.colorScheme,
-                wealthMode: game.settings.get("age-system", "wealthType")
-            },
+            config: ageSystem,
+            // config: {
+            //     colorScheme: ageSystem.colorScheme,
+            //     wealthMode: game.settings.get("age-system", "wealthType")
+            // },
             cssClass: `age-system colorset-${ageSystem.colorScheme} item-to-chat`
         };
         const chatData = {

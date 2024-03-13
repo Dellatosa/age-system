@@ -2,17 +2,12 @@
 /**   Spaceship Sheet Style   **/
 /*******************************/
 
-// .age-system.sheet .window-content {
-//     background-color: #d1b7ab;
-// }
-
 .age-system.sheet.spaceship {
     .stats-block.stats-block {
         padding: 5px;
         border-radius: 10px;
         margin-top: 10px;
         flex: 0 0 auto;
-        text-align: center;
     }
     ul {
         list-style-type: none;
@@ -43,9 +38,11 @@
     }
 
     h2,
-    h3 {
+    h3,
+    label,
+    .stats-block li {
         text-align: center;
-    };
+    }
 
     input[name="name"] {
         padding: 5px;
@@ -72,9 +69,11 @@
             object-fit: contain;
             border: none;
             height: 190px;
+            max-width: 50%;
         }
         .ship-desc {
-            flex: auto;
+            text-align: initial;
+            flex: 0 50%;
             p {
                 margin: 7px 0;
                 height: auto;
@@ -88,10 +87,7 @@
             }
             height: 190px;
             .editor {
-                height: 100%;
-                .editor-content {
-                    max-height: 173px;
-                }
+                height: 80%;
             }
         }
     }

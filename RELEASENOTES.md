@@ -1,5 +1,170 @@
 # Release Notes
 
+## 2.0.4 [2023-09-xx]
+### Added
+- New macro to enable users to roll `ageRoll` method. This function can be accessed using `game.ageSystem.roll`.
+
+### Changed
+- Resizing handler on sheet's right-hand bottom corner is now invisible until hovering sheet corner with mouse.
+- Removed lines of code and files related to the old Character Sheet.
+- When using the Apply Damage feature to apply Penetrating damage, the option "Ignore Armor" will be selected.
+
+### Fixed
+- Weapon features "Ranged" and "Reloadable" on Options tab now have localization strings.
+
+## 2.0.3 [2023-09-07]
+### Added
+- Merged [Pull Request #118](https://github.com/vkdolea/age-system/pull/118) made by [Peter](https://github.com/architech99) to add Peril flavor (FAGE 2) to Complication rolls and adding extra option to select a user created Roll Table instead of the standard 1D6 roll to check for outcome.
+- Another contribution from [Peter](https://github.com/architech99), [Pull Request #120](https://github.com/vkdolea/age-system/pull/120), adding flexibility to change maximum Health and Mana on character block sheet.
+
+### Fixed
+- Added workaround to ensure correct Item Sheet is opened when opening Owned Items.
+- "Current" label for actual values of Health and Power Points is not hardcoded anymore.
+- Portuguese localization fixes.
+- Better color contrast on dropboxes on Item Sheets.
+
+## 2.0.2 [2023-08-27]
+### Added
+- When rolling a Power with power points cost using expanded options, user will be able to change power cost before rolling it.
+- Block sheet now has a field to display Power Points (max value is locked for edition).
+- Migration of custom token effectss to comply to new FVTT v11 API.
+
+### Fixed
+- Added a 36px offset on AGE Roller icon to avoid overlapping new macro bar buttons.
+- Bug causing Spaceship Actor image on sheet to overflow and make it impossible to interact with some sheet elements.
+- Correct labels related to Power Points are now applyed on Item chat cards.
+- Fixed bug preventing context menu from rendering correctly.
+- Healing Actors from chat card will now correctly follow the System Setting "Use Targeted function to apply damage and healing".
+- Power Points will consumed only after confirming roll using when using context menu.
+- SVGs used on system edited to ensure Firefox compatibility. Thanks [Peter](https://github.com/architech99) for fixing this one!
+- Scrolling text when healing, damaging or spending power points on tokens are now following the expected color codes (red for damage, green for healing and blue for power points).
+
+## 2.0.1 [2023-06-18]
+### Fixed
+- Talent degree shows up correctly on character sheet Talent tab.
+- Removed typos on Document types' localization.
+
+## 2.0.0 [2023-06-04]
+### Added
+- FoundryVTT v10 and v11 compatible.
+- System Setting added to select Flavor for Powers and Power Points.
+- Added option to select Talent degrees as normal or expanded (as seem on Modern AGE Companion). Inclusion by [Txus](https://github.com/Txus5012). Thanks!
+
+## 1.2.4 [2023-04-07]
+### Fixed
+- Header text on character/item sheet is now back with center alignment.
+- Bug preventing changing Primary Ability and Weapon Group on Class sheet.
+
+## 1.2.3 [2023-04-04]
+### Fixed
+- Sheets behave correctly when changing font size from Core Settings.
+- When opening Damage Dialog with right-clicking damage button while pressing CTRL or CTRL + ALT will now populate "Extra Damage" field accordingly.
+- "Coins" box on character sheet now have consistent style compared to other boxes on character sheet.
+
+## 1.2.2 [2023-04-03]
+### Changed
+- Better contrast control for input fields.
+
+## 1.2.1 [2023-04-03]
+### Changed
+- TinyMCE editor removed in benefit of ProseMirror on Actors and Item sheets.
+
+### Fixed
+- Issue preventing adding or removing weapon groups from Weapons.
+
+## 1.2.0 [2023-04-02]
+### Added
+- New "Class" Item type to track character leveling. Currently, only creating the Item is possible. In the next release it will be possible to pass to a Character and use it to level up.
+
+### Changed
+- Text boxes from Character and Item sheets follow the same style and respond to window resizing.
+- Changed icon of AGE Roller (the icon close to Macro Bar).
+
+### Fixed
+- Tests and damage rolled by an unlinked token will correctly display token name on chat card and not the name on character sheet.
+
+## 1.1.12 [2023-01-27]
+### Fixed
+- Defense calculation corrected.
+
+## 1.1.11 [2023-01-26]
+### Fixed
+- Corrected order to apply Active Effects.
+
+## 1.1.10 [2023-01-22]
+### Fixed
+- Active Effects applied to final calculations (final Defense, final Test mods, etc) were not working correctly.
+
+## 1.1.9 [2023-01-20]
+### Fixed
+- Some chat cards created in old versions rendering incorrectly.
+- Problem selecting Game Mode when using Quick Settings.
+- Token sheet will update color settings without needing to closing it and openning again.
+- Data calculated based on Abilities has now the correct values when implementing Conditons or Active Effects.
+- Healing a character will now heal up to maximum Health/Fortune plus mods.
+- Shift + Left Click will now correctly trigger blind roll to GM.
+- Fixed calculation when using qualities/flaws on Spaceship which modify Hull and Sensors.
+- Fixed bug causing The Expanse quick setting to set properly Churn functionality.
+
+## 1.1.8 [2022-10-06]
+### Fixed
+- Description now appears correctly on Organization sheet when not on text editor mode.
+- Focus Item correctly checked on when drag and droped on Character and Organization sheets.
+
+## 1.1.7 [2022-10-05]
+### Changed
+- Spaceship and Vehicle sheets are now resizable.
+
+### Fixed
+- Bug preventing a plot action damage when using Organization ability.
+- Bug preventing damage formula on Spaceship Weapon.
+
+## 1.1.6 [2022-09-25]
+### Fixed
+- Bug on damage chat cards showing wrong information about secret roll to GM.
+- Standardized flag content for check and damage rolls.
+
+## 1.1.5 [2022-09-25]
+### Added
+- AGE Importer support for Dragon AGE and Fantasy AGE.
+
+### Fixed
+- Attack chat cards from unlinked tokens were not show the button to roll damage from Weapons.
+
+## 1.1.4 [2022-09-22]
+### Changed
+- Refactored chat card roll template.
+- Added borders to Actor and Item icons.
+- Changing color setting will refresh opened sheets instead of closing them.
+
+### Fixed
+- Removed an error on world start-up/refresh when attempting to load unexistant file.
+- Added warning message when opening System Settings to indicate if Item compendia were created/delete since last refresh.
+- Fixed a problem causing Items to reset to standard icon image.
+
+## 1.1.3 [2022-09-11]
+### Changed
+- Added style to Journal entries.
+
+### Fixed
+- Fixed a problem when drag and dropping Item/Actor to character sheet and compendium the icon was reset to the standard.
+
+## 1.1.2 [2022-09-10]
+### Added
+- AGE Importer now supports Major and Minor NPC stat blocks for Modern AGE.
+- AGE Importar has now capacity to import **The Expanse** stat blocks.
+
+### Fixed
+- Items and Actors created with AGE Importer will have icons according to item types.
+
+## 1.1.1 [2022-09-09]
+### Fixed
+- Fine tuning of AGE Importer to identify fields independent of letter case.
+
+## 1.1.0 [2022-09-07]
+### Added
+- Conditons Workshop now has the ability to Export and Import you custom effects to a json file. This gives the ability to save effects from one world and migrate to a brand new world.
+
 ## 1.0.4 [2022-09-05]
 - Fixed issue preventing Modifiers to be deleted from Items owned by Unlinked Actors.
 

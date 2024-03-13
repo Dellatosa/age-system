@@ -1,4 +1,20 @@
 {
+    "TYPES.Actor.char": "Character",
+    "TYPES.Actor.vehicle": "Vehicle",
+    "TYPES.Actor.spaceship": "Spaceship",
+    "TYPES.Actor.organization": "Organization",
+    "TYPES.Item.stunts": "Stunt",
+    "TYPES.Item.equipment": "Equipment",
+    "TYPES.Item.power": "Power & Arcana",
+    "TYPES.Item.talent": "Talent",
+    "TYPES.Item.focus": "Focus",
+    "TYPES.Item.weapon": "Weapon",
+    "TYPES.Item.relationship": "Relationship",
+    "TYPES.Item.honorifics": "Honorifics",
+    "TYPES.Item.membership": "Membership",
+    "TYPES.Item.shipfeatures": "Spaceship Feature",
+    "TYPES.Item.class": "Class",
+
     "ACTOR.TypeChar": "Character",
     "ACTOR.TypeVehicle": "Vehicle",
     "ACTOR.TypeSpaceship": "Spaceship",
@@ -13,6 +29,7 @@
     "ITEM.TypeHonorifics": "Honorifics",
     "ITEM.TypeMembership": "Membership",
     "ITEM.TypeShipfeatures": "Spaceship Feature",
+    "ITEM.TypeClass": "Class",
 
     "ITEM.stunts": "Stunt",
     "ITEM.equipment": "Equipment",
@@ -34,8 +51,8 @@
     "SETTINGS.advSettings": "Advanced AGE Settings",
     "SETTINGS.advSettingsHint": "Fine tune all possible settings to make your game unique",
 
-    "SETTINGS.consumePP": "Consume Power/Mana/Kana/Spell Points on roll",
-    "SETTINGS.consumePPHint": "If enabled, Points necessary to user a Power will be deducted from Character's total. A message will appear if not enough points are available.",
+    "SETTINGS.consumePP": "Consume Power Points on roll",
+    "SETTINGS.consumePPHint": "If enabled, Points necessary to use a Power will be deducted from Character's total. A message will appear if not enough points are available.",
     
     "SETTINGS.breatherSettings": "Breather Settings",
     "SETTINGS.breatherSettingsHint": "Configure amount of hits recovered by a Breather",
@@ -64,6 +81,13 @@
     "SETTINGS.useBallisticArmor": "Use Impact and Ballistic armor",
     "SETTINGS.useBallisticArmorHint": "Select if armor is divided into Impact and Ballistic",
 
+    "SETTINGS.DegressChoice": "Talent Degrees",
+    "SETTINGS.DegressChoiceHint": "Quantity and name of the talent degrees",
+    "SETTINGS.TalentDegreesMAGE": "Novice, Expert, Master",
+    "SETTINGS.TalentDegreesFAGE": "Novice, Journeyman, Master",
+    "SETTINGS.TalentDegreesMAGEExtra": "Novice, Expert, Master, Grandmaster, Apex",
+    "SETTINGS.TalentDegreesFAGEExtra": "Novice, Journeyman, Master, Grandmaster, Apex",
+
     "SETTINGS.wealthType": "Wealth system in use",
     "SETTINGS.wealthTypeHint": "Income and Resource are test based wealth system, while Currency is the usual buying system",
     "SETTINGS.wealthTypeResources": "Resources",
@@ -72,7 +96,7 @@
     "SETTINGS.wealthTypeCoins": "GP / SP / CP",
 
     "SETTINGS.primaryAbl": "Select primary abilities",
-    "SETTINGS.primaryAblHint": "Adds extra checkbox to identiry which Ability is primary",
+    "SETTINGS.primaryAblHint": "Adds extra checkbox to identify which Ability is primary",
 
     "SETTINGS.abilitySelection": "Ability settings",
     "SETTINGS.abilitySelectionHint": "Use core AGE or Dragon Age abilities",
@@ -117,19 +141,24 @@
     "SETTINGS.masterFocusCompendium": "Select Compendium with Focus options",
     "SETTINGS.masterFocusCompendiumHint": "Item names inside this Compendium will show as Focus suggestion on sheets",
 
+    "SETTINGS.complicationRollTable": "Complication Effects",
+    "SETTINGS.complicationRollTableDefault": "Roll 1d6",
+    "SETTINGS.complicationRollTableHint": "This table will be rolled when determining if Peril/Complications/Churn is activated. Choose none to roll the standard 1d6.",
+
     "SETTINGS.healthMode": "Select Health Tracker",
     "SETTINGS.healthModeHint": "Most AGE games will use Health, while The Expanse uses Fortune",
     "SETTINGS.healthModehealth": "Health",
     "SETTINGS.healthModefortune": "Fortune",
 
-    "SETTINGS.complication": "Use Complication or Churn",
-    "SETTINGS.complicationHint": "Use Complication (Modern AGE), Churn (The Expanse) or none",
+    "SETTINGS.complication": "Use AGE Tracker Pool",
+    "SETTINGS.complicationHint": "Use Peril (Fantasy AGE 2e), Complication (Modern AGE), Churn (The Expanse) or none",
     "SETTINGS.complicationNone": "None",
+    "SETTINGS.compPeril": "Peril",
     "SETTINGS.compcomplication": "Complication",
     "SETTINGS.compchurn": "Churn",
 
-    "SETTINGS.serendipity": "Use Serendipity",
-    "SETTINGS.serendipityHint": "Use Modern AGE option rule for Serendipity",
+    "SETTINGS.serendipity": "Use Serendipity/Daring",
+    "SETTINGS.serendipityHint": "Use the Serendipity (Modern AGE) or Daring (Fantasy AGE 2e) play option.",
 
     "SETTINGS.observerRoll": "Allow Observers to roll",
     "SETTINGS.observerRollHint": "Allow players with Observer permission level to roll from observed sheets and from chat rolls",
@@ -147,6 +176,12 @@
 
     "SETTINGS.ExpanseDices": "The Expanse dices set",
     "SETTINGS.ExpanseDicesHint": "Select preferred The Expanse dices set for chat and Dice So Nice (reload game to apply)",
+
+    "SETTINGS.powerFlavor": "Power Item flavor",
+    "SETTINGS.powerFlavorHint": "Select the prefered flavor from AGE books for Power types which affects Power labels and Power Points.",
+    "SETTINGS.powerFlavorPower": "Power & Power Points",
+    "SETTINGS.powerFlavorMana": "Spells & Mana Points",
+    "SETTINGS.powerFlavorSpell": "Spells & Spell Points",
 
     "age-system": {
 
@@ -179,7 +214,13 @@
             "charFocusToOrg": "Character Focus can not be added to Organization",
             "orgFocusToChar": "Organization Focus can not be added to Character",
             "vehicleItem": "Vehicles can not receive Items",
-            "breatherAppliedAll": "Breather applied to all selected Characters"
+            "breatherAppliedAll": "Breather applied to all selected Characters",
+            "newFocusCompendia": "AGE System Settings (Focus Compendium): The following compendia will not appear as Focus Compendium options until refreshing: {list}.",
+            "oldFocusCompendia": "AGE System Settings (Focus Compendium): The following compendia doesn't exist and will leave the list after refreshing: {list}.",
+            "emptyAdv": "All levels for the Progressive Advancement have empty or zero for value. No Advancement saved.",
+            "emptyItemArr": "No Item selected for this advancement. No Advancement saved.",
+            "ownedClassLevelOnly": "Only Class Item types with owner can be leveled.",
+            "actorHasClass": "Actor already has a Class item!"
         },
 
         "spaceship": {
@@ -433,6 +474,7 @@
         "fortune": "Fortune",
         "conviction": "Conviction",
         "speed": "Speed",
+        "current": "Current",
 
         "armor": "Armor",
         "ballistic": "Ballistic",
@@ -482,8 +524,29 @@
         "autoApply": "Auto Apply",
 
         "rollWithoutPP": "{name} doesn't have enough points to use {item}. Roll it anyway?",
-        "powerPoints": "Power Points",
-        "powerPointsIndex": "PP",
+        "powerFlavor": {
+            "power": {
+                "name": "Power",
+                "namePlural": "Powers",
+                "points": "Power Points",
+                "index": "PP",
+                "force": "Force"
+            },
+            "mana": {
+                "name": "Spell",
+                "namePlural": "Spells",
+                "points": "Mana Points",
+                "index": "MP",
+                "force": "Spellpower"
+            },
+            "spell": {
+                "name": "Spell",
+                "namePlural": "Spells",
+                "points": "Magic Points",
+                "index": "MP",
+                "force": "Spellpower"
+            }
+        },
         "name": "Name",
         "features": "Distinctive Features",
         "toughness": "Toughness",
@@ -526,6 +589,8 @@
             "semiAuto": "SA",
             "fullAuto": "AA"
         },
+        "ranged": "Ranged",
+        "reloadable": "Reloadable",
 
         "move": "Move",
         "level": "Level",
@@ -732,6 +797,34 @@
         "favoredStunts": "Favored Stunts",
         "specialFeatures": "Special Features",
         "threat": "Threat",
-        "rollable": "Rollable"
+        "rollable": "Rollable",
+        "export": "Export",
+        "import": "Import",
+        "invalidFileContent": "File content is not valid",
+        "customEffects": "Custom Effects",
+        "customEffectsSet": "Custom Effects set",
+        "attkHeader": "Weapon Attack Roll Damage",
+
+        "advancement": "Advancement",
+        "improvements": "Improvements",
+        "advancementNew": "Select New Advancement",
+        "levelName": "Level {level}",
+        "advProgressiveTrait": "Progressive Trait",
+        "advNewItem": "New Item or Improve Existing One",
+        "advAbility": "Ability Advancement",
+        "defenseAndToughness": "Defense and Toughness",
+        "trait": "Trait",
+        "alias": "Alias",
+        "confirm": "Confirm",
+        "image": "Image",
+        "itemProgression": "Item Progression",
+        "itemProgressionHint": "Adds in the list below the option to Progress an existing Item from the chosen type.",
+        "itemOptionSingle": "Receive one Item",
+        "itemOptionSingleProgress": "Receive or Advance one Item",
+        "itemOptionMultiple": "Pick Items from list",
+        "itemOptionAll": "Receive all Items",
+        "dragAdvItem": "Drag Advancement Items in the space below",
+        "add": "Add",
+        "leveledImprovements": "Obtained Improvements"
     }
 }

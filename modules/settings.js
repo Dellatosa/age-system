@@ -1,6 +1,7 @@
 import { ageSystem } from "./config.js";
 import BreatherSettings from "./breather.js";
 import { AdvancedSettings, QuickSettings } from "./settings-helper.js";
+import { localizePower } from "./setup.js";
 
 const debouncedReload = debounce(() => window.location.reload(), 250);
 export const registerSystemSettings = async function() {
@@ -75,7 +76,8 @@ export const registerSystemSettings = async function() {
       "select-one": "SETTINGS.colorSelectOne",
       "the-grey": "SETTINGS.colorTheGrey",
       "red-warrior": "SETTINGS.colorRedWarrior",
-      "never-dead": "SETTINGS.colorNeverDead"
+      "never-dead": "SETTINGS.colorNeverDead",
+      // "snow-white": "SW"
     },
     onChange: ()=>{
       const newColor = game.settings.get("age-system", "colorScheme")
@@ -83,11 +85,13 @@ export const registerSystemSettings = async function() {
       game.user.setFlag("age-system", "colorScheme", newColor);
       game.ageSystem.ageRoller.refresh();
       if (game.settings.get("age-system", "serendipity") || game.settings.get("age-system", "complication")) game.ageSystem.ageTracker.refresh();
-      [...game.actors.contents, ...Object.values(game.actors.tokens), ...game.items.contents].forEach((o) => {
-        if (o) {
-          if (o.sheet != null && o.sheet._state > 0) o.sheet.close();
-        };
-      });
+      // [...game.actors.contents, ...Object.values(game.actors.tokens), ...game.items.contents].forEach((o) => {
+      //   if (o) {
+      //     if (o.sheet != null && o.sheet._state > 0) o.sheet.render();
+      //     o.items?.forEach((i)=> {if (i.sheet != null && i.sheet._state > 0) i.sheet.render()});
+      //   };
+      // });
+      refreshSheets()
     },
   });
 
@@ -194,17 +198,9 @@ export const registerSystemSettings = async function() {
       "health": "SETTINGS.healthModehealth",
       "fortune": "SETTINGS.healthModefortune",
     },
-    // onChange: debouncedReload
     onChange: () => {
       ageSystem.healthSys.healthName = game.i18n.localize(`SETTINGS.healthMode${game.settings.get("age-system", "healthMode")}`),
-      [...game.actors.contents, ...Object.values(game.actors.tokens)]
-        .filter((o) => {
-          return o.data.type === "char";
-        })
-        .forEach((o) => {
-          o.update({});
-          if (o.sheet != null && o.sheet._state > 0) o.sheet.render();
-        });
+      refreshSheets();
     },
   }); 
 
@@ -252,6 +248,25 @@ export const registerSystemSettings = async function() {
   });
 
  /**
+   * Talent degrees type
+   */
+  game.settings.register("age-system", "DegressChoice", {
+    name: "SETTINGS.DegressChoice",
+    hint: "SETTINGS.DegressChoiceHint",
+    scope: "world",
+    config: false,
+    default: "mage",
+    type: String,
+    choices: {
+      "mage": "SETTINGS.TalentDegreesMAGE",
+      "fage": "SETTINGS.TalentDegreesFAGE",
+      "mageExtra": "SETTINGS.TalentDegreesMAGEExtra",
+      "fageExtra": "SETTINGS.TalentDegreesFAGEExtra",
+    },
+    onChange: debouncedReload
+  });
+
+ /**
    * Register currency type
    */
   game.settings.register("age-system", "wealthType", {
@@ -267,7 +282,7 @@ export const registerSystemSettings = async function() {
       "currency": "SETTINGS.wealthTypeCurrency",
       "coins": "SETTINGS.wealthTypeCoins",
     },
-    onChange: debouncedReload
+    onChange: () => refreshSheets()
   });
 
   /**
@@ -284,7 +299,7 @@ export const registerSystemSettings = async function() {
       "profession": "SETTINGS.occprofession",
       "class": "SETTINGS.occclass",
     },
-    onChange: debouncedReload
+    onChange: () => refreshSheets()
   });
 
   /**
@@ -303,7 +318,7 @@ export const registerSystemSettings = async function() {
       "species": "SETTINGS.ancestryOptspecies",
       "race": "SETTINGS.ancestryOptrace",
     },
-    onChange: debouncedReload
+    onChange: () => refreshSheets()
   });
 
   /**
@@ -358,6 +373,27 @@ export const registerSystemSettings = async function() {
   });
 
   /**
+   * Select multiple flavor for Power and Power Points (Mana, Kana, Spell)
+   */
+  game.settings.register("age-system", "powerFlavor", {
+    name: "SETTINGS.powerFlavor",
+    hint: "SETTINGS.powerFlavorHint",
+    scope: "world",
+    config: true,
+    default: "power",
+    type: String,
+    choices: {
+      "power": "SETTINGS.powerFlavorPower",
+      "spell": "SETTINGS.powerFlavorSpell",
+      "mana": "SETTINGS.powerFlavorMana"
+    },
+    onChange: () => {
+      localizePower(),
+      refreshSheets();
+    }
+  });
+
+  /**
   * Consume Power Points on roll
   */
   game.settings.register("age-system", "consumePP", {
@@ -382,6 +418,7 @@ export const registerSystemSettings = async function() {
     type: String,
     choices: {
       "none": "SETTINGS.complicationNone",
+      "Peril": "SETTINGS.compPeril",
       "complication": "SETTINGS.compcomplication",
       "churn": "SETTINGS.compchurn"
     },
@@ -398,7 +435,7 @@ export const registerSystemSettings = async function() {
     config: false,
     default: {max: 30, actual: 0},
     type: Object,
-    onChange: async () => {if (await game.settings.get("age-system", "complication")) game.ageSystem.ageTracker.refresh()}
+    onChange: () => {if (game.settings.get("age-system", "complication")) game.ageSystem.ageTracker.refresh()}
   });  
 
   /**
@@ -424,7 +461,7 @@ export const registerSystemSettings = async function() {
     config: false,
     default: {max: 18, actual: 0},
     type: Object, 
-    onChange: async () => {if (await game.settings.get("age-system", "serendipity")) game.ageSystem.ageTracker.refresh()}
+    onChange: async () => {if (game.settings.get("age-system", "serendipity")) game.ageSystem.ageTracker.refresh()}
   });
 
   /**
@@ -536,8 +573,84 @@ export const loadCompendiaSettings = function() {
     default: "age-system.focus",
     type: String,
     choices: ageSystem.itemCompendia,
-    onChange: async ()=>{ageSystem.focus = compendiumList(await game.settings.get("age-system", "masterFocusCompendium"))}
+    onChange: async ()=>{ageSystem.focus = focusList(await game.settings.get("age-system", "masterFocusCompendium"))}
   });
+
+  /**
+   * Select RollTable for complication
+   */
+  game.settings.register("age-system", "complicationRollTable", {
+    name: "SETTINGS.complicationRollTable",
+    hint: "SETTINGS.complicationRollTableHint",
+    scope: "world",
+    config: false,
+    default: "age-system.complicationRollTable",
+    type: String,
+    choices: ageSystem.rollTables,
+    onChange: async ()=>{ageSystem.complicationRollTable = await game.settings.get("age-system", "complicationRollTable")}
+  });
+};
+
+// Creates the Options object with all compendia in alphabetic order
+export function allCompendia(docType) {
+  let list = {};
+  game.packs.map(e => {
+    const packType = e.metadata.type
+    if (packType === docType) list[e.metadata.id] = e.metadata.name;
+  });
+  return list
+};
+
+// Creates the Options object with all compendia in alphabetic order
+export function allRollTables() {
+  console.info("age-system: allRollTables");
+  let list = [];
+
+  // Default none option
+  list['none'] = game.i18n.localize('SETTINGS.complicationRollTableDefault');
+  let documents = RollTables.instance;
+
+  game.tables.map(e => {
+    list[e.id] = e.name;
+  });
+
+  return list;
+};
+
+export async function updateFocusCompendia() {
+  const list = allCompendia("Item");
+  let actualChoices;
+  const obj = game.settings.settings;
+  for (const s of obj) {
+    if (s?.[0] === "age-system.masterFocusCompendium") {
+      actualChoices = foundry.utils.deepClone(s[1].choices);
+    };
+  };
+
+  // Identify if Item Compendipia were added or deleted and warn user that new option will appear only after System Refresh (F5)
+  // TODO - add dynamic choices for System Setting
+  if (!foundry.utils.objectsEqual(list, actualChoices)) {
+    const newPacks = [];
+    const oldPacks = [];
+    for (const p in actualChoices) if (!list[p]) oldPacks.push(actualChoices[p]);
+    for (const p in list) if (!actualChoices[p]) newPacks.push(list[p]);
+    if (newPacks.length) ui.notifications.warn(game.i18n.format("age-system.WARNING.newFocusCompendia", {list: newPacks.join(", ")}), {permanent: true, cosole: false});
+    if (oldPacks.length) ui.notifications.warn(game.i18n.format("age-system.WARNING.oldFocusCompendia", {list: oldPacks.join(", ")}), {permanent: true, console: false});
+  }
+}
+
+// Creates a list of entries in the Compendium (name and _id)
+export function focusList(compendiumName) {
+  let dataList = [{_id: "", name: ""}];
+  if ([null, undefined, false, ""].includes(compendiumName)) return dataList;
+  let dataPack = game.packs.get(compendiumName);
+  if (!dataPack?.index) return dataList;
+  dataPack.index.map(i => {
+    if(i.type === "focus") dataList.push({
+    id: i._id,
+    name: i.name
+  })})
+  return dataList;
 };
 
 export function stuntSoNice(colorChoices, systems) {
@@ -554,46 +667,13 @@ export function stuntSoNice(colorChoices, systems) {
     choices: colorChoices,
     onChange:()=>{game.user.setFlag("age-system", "stuntSoNice", game.settings.get("age-system", "stuntSoNice"))}
   });
-
-  // systems.splice(0, 0, 'none');
-  // game.settings.register("age-system", "stuntDieSystem", {
-  //   name: "SETTINGS.stuntSoNice",
-  //   hint: "SETTINGS.stuntSoNiceHint",
-  //   scope: "client",
-  //   config: false,
-  //   default: "none",
-  //   type: String,
-  //   choices: systems,
-  //   onChange:()=>{game.user.setFlag("age-system", "stuntDieSystem", game.settings.get("age-system", "stuntDieSystem"))}
-  // });
 };
 
-// Creates the Options object with all compendia in alphabetic order
-export function allCompendia(docType) {
-  let list = {};
-  game.packs.map(e => {
-    const packType = e.metadata.type ? e.metadata.type : e.metadata.entity; // e.metadata.entity required to keep compatibility for versions 0.8.x
-    if (packType === docType) {
-      const newItem = {[`${e.metadata.package}.${e.metadata.name}`]: e.metadata.label};
-      list = {
-        ...list,
-        ...newItem
-      }
-    }
+function refreshSheets() {
+  [...game.actors.contents, ...Object.values(game.actors.tokens), ...game.items.contents].forEach((o) => {
+    if (o) {
+      if (o.sheet != null && o.sheet._state > 0) o.sheet.render();
+      o.items?.forEach((i)=> {if (i.sheet != null && i.sheet._state > 0) i.sheet.render()});
+    };
   });
-  return list
-};
-
-// Creates a list of entries in the Compendium (name and _id)
-export function compendiumList(compendiumName) {
-  let dataList = [{_id: "", name: ""}];
-  if ([null, undefined, false, ""].includes(compendiumName)) return dataList;
-  let dataPack = game.packs.get(compendiumName);
-  if (!dataPack?.index) return dataList;
-  dataPack.index.map(i => {
-    if(i.type === "focus") dataList.push({
-    _id: i._id,
-    name: i.name
-  })})
-  return dataList;
-};
+}

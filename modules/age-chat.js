@@ -55,7 +55,7 @@ function applyChatCardDamage(li, options) {
     const cardDamageData = message.flags?.["age-system"]?.damageData;
     const total = cardDamageData?.totalDamage ?? roll.total;
     if (options.isHealing) {
-        return Promise.all(canvas.tokens.controlled.map(t => {
+        return Promise.all(controlledTokenByType(['char']).map(t => {
           const a = t.actor;
           return ageSystem.healthSys.useInjury ? a.healMarks(total) : a.applyHPchange(total, options);
         }));
@@ -115,7 +115,8 @@ export async function applyDamageChat(event) {
     event.preventDefault();
     const card = event.target.closest(".chat-message");
     const cardId = card.dataset.messageId;
-    let damageData = await foundry.utils.deepClone(game.messages.get(cardId).flags["age-system"].damageData);
+    const cardData = game.messages.get(cardId).flags["age-system"].damageData ?? game.messages.get(cardId).flags["age-system"].ageroll.rollData; // Compatibility to Damage Chat Card before 1.1.6
+    let damageData = await foundry.utils.deepClone(cardData);
     const cardHealthSys = damageData.healthSys;
     if (!checkHealth(cardHealthSys, ageSystem.healthSys)) {
         damageData = {
@@ -284,16 +285,14 @@ function _buttonType(buttons) {
  * @param {object} chatCard         Chat card object containing the Message Data
  * @param {object} chatData         Data containing Message data
  */
-async function _handleAgeRollVisibility(html, chatCard, chatData){
+function _handleAgeRollVisibility(html, chatCard, chatData){
     const element = html.find(".age-system.base-age-roll .feature-controls");
+    const flags = chatCard.flags?.["age-system"]?.ageroll;
     for (let e = 0; e < element.length; e++) {
         const el = element[e];
-        const data = el.dataset;
-        const actorId = data.actorId;
-        let actor;
-        if (actorId) {
-            actor = actorId.startsWith("Actor.") ? await fromUuid(actorId) : game.actors.get(actorId); // this section is to keep chat compatibilities with version 0.7.4 and ealier
-        }
+        let actorId = flags?.rollData?.actorId;
+        if (!actorId && flags?.type === "damage") actorId = flags.damageData.attackerId; // Compatibility to Damage Chat Card before 1.1.6
+        let actor = actorId ? fromUuidSync(actorId) : null;
         actor = actor?.actor ?? actor;
         const isBlind = chatCard.blind;
         const whisperTo = chatData.message.whisper;
@@ -332,7 +331,6 @@ async function _handleItemCardButton(html){
 
 /**
  * Set visibility properties for buttons and blind-roll segments (blind-roll segments currently not used)
- *
  * @param {string} actorPerm        Permission the current user has for the Actor contained on a chat card
  * @param {HTMLelement} element     Chat card HTML element to be be removed if User is not Actor owner or Observer
  */

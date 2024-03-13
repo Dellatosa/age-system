@@ -1,0 +1,87 @@
+<form class="{{cssClass}} age-system item class flexrow no-flexwrap" autocomplete="off">
+    <aside class="sidebar metal-background colorset-first-tier">
+        <img class="document-picture" src="{{item.img}}" data-edit="img" title="{{item.name}}"/>
+        <ul class="item-summary">
+            {{!-- Level --}}
+            <li>
+                <label>{{localize "age-system.level"}}</label>
+                <input type="number" name="system.level" value="{{system.level}}" data-dtype="Number"/></select>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="second-column flexcol">
+        <header class="top-banner colorset-first-tier flexrow">
+            <div class="header-details">
+                <input class="itemname" name="name" type="text" value="{{item.name}}" placeholder={{localize "age-system.name"}}/>
+                <div class="sub-details" style="display: none;">
+                    {{!-- Requirement --}}
+                    <input type="number" name="system.requirement" value="{{system.requirement}}">
+                    <label>{{localize "age-system.requirement"}}</label>
+                </div>
+            </div>
+        </header>
+        
+        <div class="sheet-main-content metal-background">
+
+            {{!-- Sheet Tab Navigation --}}
+            <nav class="add-sheet-tabs tabs" data-group="primary">
+                <a class="item" data-tab="main">{{localize "age-system.item.desc"}}</a>
+                <a class="item" data-tab="adv">{{localize "age-system.advancement"}}</a>
+            </nav>
+
+            <section class="sheet-tab-section">
+                {{!-- Main Tab --}}
+                <div class="tab main fill-space-height-100" data-group="primary" data-tab="main">
+                    <ul class="resource colorset-third-tier editor-parent">
+                        <li class="editor-parent no-value-class">{{editor system.description target="system.description" button=true owner=owner editable=true engine="prosemirror"}}</li>
+                    </ul>
+                </div>
+
+                {{!-- Advancement Tab --}}
+                <div class="tab adv" data-group="primary" data-tab="adv">
+
+                    {{#if usePrimaryAbl}}
+                    <ul class="resource item-group">
+                        <li class="title colorset-first-tier">
+                            {{localize "SETTINGS.primaryAbl"}}
+                        </li>
+                        <li class="colorset-third-tier flexrow">
+                            <p>
+                                {{#each ablOptions as |abl id|}}
+                                <a class="feature-controls select-options item-name trait-item item-box {{#if (haswgroup id ../item.system.primaryAbl)}}colorset-first-tier{{else}}colorset-third-tier{{/if}}" data-trait-id="{{@key}}" data-trait-type="primaryAbl">
+                                    {{abl}}
+                                </a>
+                                {{/each}}
+                            </p>
+                        </li>
+                    </ul>
+                    {{/if}}
+                    
+                    {{#if weaponGroups}}
+                    {{> "systems/age-system/templates/partials/weapon-group-block.hbs" ownedGroups=item.system.wgroups}}
+                    {{/if}}
+
+                    <ol class="resource item-group colorset-third-tier">
+                        <li class="title colorset-first-tier">
+                            <span>{{localize "age-system.improvements"}}</span>
+                            <a class="add-adv"><i class="fa fa-plus-circle" aria-hidden="true"></i></a>
+                        </li>
+                        {{#each system.advPerLvl as |advs|}}
+                        {{#if advs}}
+                        <li class="list-sub-header colorset-second-tier">{{localize "age-system.level"}} {{levelarr @index}}</li>
+                        {{#each advs as |a|}}
+                        <li class="advance feature-controls flexrow" data-type="{{a.type}}" data-id="{{a.id}}" data-level="{{a.level}}">
+                            <img src="{{a.img}}">
+                            <span class="adv-name">{{a.alias}}</span>
+                        </li>
+                        {{/each}}
+                        {{/if}}
+                        {{/each}}
+                    </ol>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</form>

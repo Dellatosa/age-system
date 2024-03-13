@@ -1,18 +1,14 @@
 # Unofficial AGE System for FVTT
-Unofficial implementation of AGE System (Green Ronin) for Foundry VTT
+Unofficial implementation of AGE System (Green Ronin) for Foundry VTT. Character sheet designed to serve most of AGE System versions. Not all AGE installments are fully implemented. New features are expected to be added over time.
 
-<img src="https://i.imgur.com/RFWhhxO.jpg"/>
+<img src="https://i.imgur.com/BQNFklx.png" alt="AGE System sheets preview" />
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/vkdolea)
-
-## Intro
-Character sheet designed to serve most of AGE System versions. Not all AGE installments are fully implemented. New features are expected to be added over time.
 
 ## Wiki
 Take a look at [AGE System (unofficial) wiki](https://github.com/vkdolea/age-system/wiki) to understand how to use the game system
 
 ## Features
-- [PDFoundry](https://foundryvtt.com/packages/pdfoundry) integration
 - [Dice so Nice](https://foundryvtt.com/packages/dice-so-nice) compatible
 - Two possible Character sheet - one Complete and another condensed, ideal for NPCs and quick character overview
 - Different color schemes
@@ -45,7 +41,7 @@ Take a look at [AGE System (unofficial) wiki](https://github.com/vkdolea/age-sys
     - @level (character level)
 
 ## Spaceship and Vehicle Controls
-You can drag and drop Characters to Veihcles and Spaceships, so these passengers will be able to be selected for roles inside the vehicle/spaceship.
+You can drag and drop Characters to Vehicles and Spaceships, so these passengers will be able to be selected for roles inside the vehicle/spaceship.
 
 ## Shortcuts
 1. *Shift + Click* on Attack or Damage rolls trigger GM roll (only GM can see).
@@ -109,6 +105,7 @@ Icons made by:
 - [Delapouite](https://delapouite.com/), [DarkZaitev](http://darkzaitzev.deviantart.com/), [Lorc](https://lorcblog.blogspot.com/), [Skoll](https://game-icons.net),   from [game-icons.net](https://game-icons.net/).
 
 ### Localization
+Do you want to help with localization? Take a look at [this wiki entry!](https://github.com/vkdolea/age-system/wiki/Localization)
 - **French**: by Discord users *Imposator#8090* & *Abdanck#2003*.
 - **Brazilian Portuguese**: by Discord user *Leandro_Soares#9067* and me.
 - **Spanish**: by Discord user *ForjaSalvaje#2419*.
