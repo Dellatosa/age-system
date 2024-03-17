@@ -938,7 +938,6 @@ Hooks.once('diceSoNiceReady', (dice3d) => {
         break;
     }
 });
-*/
 
 Hooks.once('diceSoNiceReady', (dice3d) => {
 
